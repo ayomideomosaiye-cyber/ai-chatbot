@@ -3985,4 +3985,299 @@ a:hover { opacity: 0.85; }
   box-shadow: 0 6px 20px rgba(0, 245, 212, 0.25);
 }
 
+/* =============================================================
+   MOBILE RESPONSIVENESS SUITE (iOS, Android, Tablets, Small Screens)
+   ============================================================= */
+
+/* Mobile Utility Classes */
+.hide-on-mobile {
+  display: inline;
+}
+.show-on-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+  .show-on-mobile {
+    display: inline !important;
+  }
+
+  /* Prevent awkward iOS Safari auto-zoom on form inputs */
+  .chat-input,
+  .prompt-input-field,
+  .auth-input,
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  /* --- Navigation on Mobile --- */
+  .portal-nav {
+    width: 95% !important;
+    padding: 8px 12px !important;
+    margin-top: 10px !important;
+  }
+  .landing-brand {
+    font-size: 18px !important;
+  }
+  .landing-nav-links {
+    display: none !important;
+  }
+  .cursor-toggle-pill .cursor-toggle-text {
+    display: none !important;
+  }
+  .cursor-toggle-pill {
+    padding: 6px 8px !important;
+  }
+  .nav-chat-btn,
+  .nav-admin-btn,
+  .landing-nav-actions .btn-sm {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+  }
+
+  /* --- Hero Typography on Mobile --- */
+  .portal-hero-content {
+    padding: 24px 14px 20px !important;
+  }
+  .portal-title {
+    font-size: 32px !important;
+    letter-spacing: -0.5px !important;
+    line-height: 1.18 !important;
+    margin-bottom: 14px !important;
+  }
+  .hero-roller-capsule {
+    margin-top: 8px !important;
+    padding: 4px 16px !important;
+    max-width: 96vw !important;
+  }
+  .hero-roller-capsule .pxxl-roller-stage {
+    min-width: 0 !important;
+    width: 100% !important;
+    height: 1.35em !important;
+  }
+  .hero-roller-capsule .pxxl-roller-item {
+    font-size: 22px !important;
+    gap: 8px !important;
+  }
+  .portal-subtitle {
+    font-size: 14px !important;
+    line-height: 1.55 !important;
+    margin-bottom: 24px !important;
+    padding: 0 4px;
+  }
+  .hero-cta-group {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 10px !important;
+  }
+  .hero-btn-main, 
+  .hero-btn-sub {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 13px 20px !important;
+    font-size: 15px !important;
+  }
+
+  /* --- Prompt Bar & Mode Tabs on Mobile --- */
+  .portal-prompt-bar {
+    margin-top: 20px !important;
+    padding: 8px 10px !important;
+    width: 100% !important;
+  }
+  .prompt-input-row {
+    gap: 8px !important;
+  }
+  .hero-mode-tabs {
+    display: flex !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    padding: 6px 2px !important;
+    scrollbar-width: none;
+  }
+  .hero-mode-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .mode-tab-btn {
+    flex-shrink: 0 !important;
+    padding: 6px 12px !important;
+    font-size: 11px !important;
+  }
+
+  /* --- Grids & Columns on Mobile --- */
+  .preview-split-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .features-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  .languages-pills-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  /* --- Chat Interface Mobile Ergonomics --- */
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 99;
+    animation: fadeIn 0.2s ease-out;
+  }
+  .sidebar {
+    position: fixed !important;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 280px !important;
+    max-width: 85vw !important;
+    z-index: 100 !important;
+    box-shadow: 6px 0 35px rgba(0, 0, 0, 0.85) !important;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  .sidebar.open {
+    transform: translateX(0) !important;
+  }
+
+  /* Chat Header */
+  .chat-header {
+    padding: 8px 12px !important;
+    gap: 6px !important;
+  }
+  .chat-header-actions {
+    gap: 4px !important;
+  }
+  .chat-header-btn {
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+  }
+  .persona-badge-pill {
+    display: none !important;
+  }
+  .persona-trigger-btn {
+    padding: 6px 8px !important;
+  }
+  .lang-current span:last-child {
+    display: none !important;
+  }
+  .lang-current {
+    padding: 6px 8px !important;
+  }
+
+  /* Quick Dialects Scroll */
+  .quick-dialects-bar {
+    padding: 6px 12px !important;
+  }
+  .dialects-scroll {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    white-space: nowrap !important;
+    scrollbar-width: none;
+  }
+  .dialects-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .dialect-pill {
+    flex-shrink: 0;
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+  }
+  .response-time-pill {
+    display: none !important;
+  }
+
+  /* Chat Messages & Input */
+  .chat-messages {
+    padding: 12px 10px !important;
+  }
+  .message-content {
+    max-width: 90% !important;
+    padding: 10px 14px !important;
+    font-size: 14px !important;
+  }
+  .chat-input-container {
+    padding: 8px 10px 12px !important;
+  }
+  .chat-input-wrapper {
+    padding: 6px 10px !important;
+    gap: 6px !important;
+  }
+  .chat-action-icon-btn,
+  .chat-voice-btn,
+  .chat-send-btn {
+    width: 36px !important;
+    height: 36px !important;
+    padding: 6px !important;
+    flex-shrink: 0;
+  }
+  .floating-tts-bar {
+    margin: 0 10px 8px !important;
+    padding: 8px 12px !important;
+  }
+  .tts-banner-text {
+    font-size: 12px !important;
+  }
+
+  /* Welcome Screen Roller */
+  .welcome-roller-tag {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    padding: 6px 14px !important;
+    border-radius: 20px !important;
+  }
+  .welcome-roller-prefix {
+    font-size: 11px !important;
+  }
+  .welcome-roller-tag .pxxl-roller-stage {
+    min-width: 0 !important;
+    height: 1.3em !important;
+  }
+  .welcome-roller-tag .pxxl-roller-text {
+    font-size: 13px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .portal-title {
+    font-size: 26px !important;
+  }
+  .hero-roller-capsule .pxxl-roller-item {
+    font-size: 18px !important;
+  }
+  .languages-pills-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .persona-name {
+    display: none !important;
+  }
+  .chat-title span {
+    display: inline-block;
+    font-size: 15px !important;
+  }
+}
+
+/* Touch devices: Always show action buttons so users can tap Copy, Listen & Stop */
+@media (hover: none) {
+  .message-actions {
+    opacity: 0.9 !important;
+  }
+  .motion-cursor-root {
+    display: none !important;
+  }
+}
+
+
 

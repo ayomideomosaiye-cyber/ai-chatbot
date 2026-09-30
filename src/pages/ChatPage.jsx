@@ -329,19 +329,34 @@ export default function ChatPage() {
       <Sidebar 
         conversations={conversations}
         activeId={activeConversationId}
-        onSelect={setActiveConversationId}
-        onNewChat={newChat}
+        onSelect={(id) => {
+          setActiveConversationId(id);
+          if (window.innerWidth <= 768) setSidebarOpen(false);
+        }}
+        onNewChat={() => {
+          newChat();
+          if (window.innerWidth <= 768) setSidebarOpen(false);
+        }}
         onDelete={deleteConversation}
         user={user}
         onLogout={logout}
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
       />
+
+      {/* Mobile Sidebar Backdrop Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="sidebar-backdrop" 
+          onClick={() => setSidebarOpen(false)} 
+        />
+      )}
+
       <div className="chat-main">
         {/* Header with tools */}
         <div className="chat-header">
           <div className="chat-header-left">
-            <button className="sidebar-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
+            <button className="sidebar-toggle" onClick={() => setSidebarOpen(!sidebarOpen)} title="Toggle menu">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M3 12h18M3 6h18M3 18h18" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -374,19 +389,19 @@ export default function ChatPage() {
                   <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
                   <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                 </svg>
-                <span>Share</span>
+                <span className="hide-on-mobile">Share</span>
               </button>
             )}
 
             {/* Quick Export Button */}
             {messages.length > 0 && (
-              <button className="chat-header-btn" onClick={exportChat} title="Export chat as Markdown">
+              <button className="chat-header-btn export-btn" onClick={exportChat} title="Export chat as Markdown">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                   <polyline points="7 10 12 15 17 10"/>
                   <line x1="12" y1="15" x2="12" y2="3"/>
                 </svg>
-                <span>Export</span>
+                <span className="hide-on-mobile">Export</span>
               </button>
             )}
 
@@ -422,7 +437,6 @@ export default function ChatPage() {
               </svg>
             </button>
 
-
             {/* Live TTS Stop Button in Header */}
             {ttsActive && (
               <button 
@@ -433,7 +447,8 @@ export default function ChatPage() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                   <rect x="4" y="4" width="16" height="16" rx="3" />
                 </svg>
-                <span>Stop Voice</span>
+                <span className="hide-on-mobile">Stop Voice</span>
+                <span className="show-on-mobile">Stop</span>
               </button>
             )}
 
