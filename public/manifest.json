@@ -1,0 +1,19 @@
+{
+  "short_name": "Westy AI",
+  "name": "Westy AI — Intelligent Multi-Dialect Assistant",
+  "description": "Next-generation multimodal conversational AI with multi-dialect support and persona intelligence.",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#08080f",
+  "theme_color": "#00f5d4",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "scope": "/"
+}
