@@ -182,7 +182,7 @@ export default function LandingPage() {
           </div>
 
           <h1 className="hero-title portal-title">
-            Next-Gen AI built for <br />
+            <span className="hero-main-line">Next-Gen AI</span>
             <div className="hero-roller-capsule">
               <VerticalWordRoller />
             </div>
