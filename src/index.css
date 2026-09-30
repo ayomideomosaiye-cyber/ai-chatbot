@@ -3787,6 +3787,9 @@ a:hover { opacity: 0.85; }
 
 .pxxl-roller-item {
   position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3848,20 +3851,6 @@ a:hover { opacity: 0.85; }
   filter: drop-shadow(0 0 20px rgba(0, 245, 212, 0.7));
 }
 
-@media (max-width: 768px) {
-  .hero-roller-capsule {
-    padding: 6px 18px;
-    margin-top: 10px;
-  }
-  .hero-roller-capsule .pxxl-roller-stage {
-    min-width: 270px;
-    height: 1.4em;
-  }
-  .hero-roller-capsule .pxxl-roller-item {
-    font-size: 24px;
-    gap: 8px;
-  }
-}
 
 
 /* Drops DOWNWARDS and exits */
@@ -3871,7 +3860,7 @@ a:hover { opacity: 0.85; }
 
 /* Enters from TOP and drops DOWNWARDS into center with subtle spring */
 .pxxl-roller-item.drop-down-enter {
-  transform: translateY(-130%) scale(0.92);
+  transform: translateX(-50%) translateY(-180%) scale(0.92);
   opacity: 0;
   filter: blur(6px);
 }
@@ -3882,12 +3871,12 @@ a:hover { opacity: 0.85; }
 
 @keyframes pxxlDropExit {
   0% {
-    transform: translateY(0) scale(1);
+    transform: translateX(-50%) translateY(-50%) scale(1);
     opacity: 1;
     filter: blur(0);
   }
   100% {
-    transform: translateY(130%) scale(0.92);
+    transform: translateX(-50%) translateY(80%) scale(0.92);
     opacity: 0;
     filter: blur(8px);
   }
@@ -3895,17 +3884,17 @@ a:hover { opacity: 0.85; }
 
 @keyframes pxxlDropEnter {
   0% {
-    transform: translateY(-130%) scale(0.92);
+    transform: translateX(-50%) translateY(-180%) scale(0.92);
     opacity: 0;
     filter: blur(8px);
   }
   75% {
-    transform: translateY(4px) scale(1.02);
+    transform: translateX(-50%) translateY(-46%) scale(1.02);
     opacity: 1;
     filter: blur(0);
   }
   100% {
-    transform: translateY(0) scale(1);
+    transform: translateX(-50%) translateY(-50%) scale(1);
     opacity: 1;
     filter: blur(0);
   }
@@ -4054,6 +4043,14 @@ a:hover { opacity: 0.85; }
   }
 
   /* --- Hero Typography on Mobile --- */
+  .hero-pill-badge {
+    font-size: 11px !important;
+    padding: 5px 12px !important;
+    max-width: 90vw !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
   .portal-hero-content {
     padding: 24px 14px 20px !important;
   }
@@ -4065,17 +4062,19 @@ a:hover { opacity: 0.85; }
   }
   .hero-roller-capsule {
     margin-top: 8px !important;
-    padding: 4px 16px !important;
-    max-width: 96vw !important;
+    padding: 6px 18px !important;
+    max-width: 92vw !important;
   }
   .hero-roller-capsule .pxxl-roller-stage {
-    min-width: 0 !important;
-    width: 100% !important;
-    height: 1.35em !important;
+    min-width: 260px !important;
+    height: 1.4em !important;
   }
   .hero-roller-capsule .pxxl-roller-item {
-    font-size: 22px !important;
-    gap: 8px !important;
+    font-size: 18px !important;
+    gap: 6px !important;
+  }
+  .hero-roller-capsule .pxxl-roller-icon {
+    font-size: 16px !important;
   }
   .portal-subtitle {
     font-size: 14px !important;
@@ -4255,7 +4254,7 @@ a:hover { opacity: 0.85; }
     font-size: 11px !important;
   }
   .welcome-roller-tag .pxxl-roller-stage {
-    min-width: 0 !important;
+    min-width: 180px !important;
     height: 1.3em !important;
   }
   .welcome-roller-tag .pxxl-roller-text {
