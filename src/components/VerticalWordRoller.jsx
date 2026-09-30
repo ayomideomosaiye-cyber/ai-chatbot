@@ -6,12 +6,12 @@ import React, { useState, useEffect } from 'react';
  */
 export default function VerticalWordRoller({ 
   items = [
-    { text: 'Full-Stack Code & Projects', icon: '💻', color: 'from-cyan to-teal' },
-    { text: 'Live Web Research & News', icon: '🌐', color: 'from-blue to-cyan' },
-    { text: 'Native Yoruba, Igbo & Hausa', icon: '🗣️', color: 'from-emerald to-green' },
-    { text: 'Vision & Multimodal Intelligence', icon: '👁️', color: 'from-purple to-pink' },
-    { text: 'Complex Problem Solving', icon: '⚡', color: 'from-amber to-orange' },
-    { text: 'Creative & Technical Writing', icon: '📝', color: 'from-indigo to-purple' }
+    { text: 'Live Web Search', icon: '🌐' },
+    { text: 'Code & Logic', icon: '💻' },
+    { text: 'African Dialects', icon: '🗣️' },
+    { text: 'Multimodal Vision', icon: '👁️' },
+    { text: 'Deep Reasoning', icon: '⚡' },
+    { text: 'Creative Writing', icon: '📝' }
   ],
   interval = 2800,
   className = ''
