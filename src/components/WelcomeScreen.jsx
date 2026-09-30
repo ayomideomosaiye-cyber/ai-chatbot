@@ -1,4 +1,5 @@
 import React from 'react';
+import VerticalWordRoller from './VerticalWordRoller';
 
 export default function WelcomeScreen({ onPromptClick }) {
   const prompts = [
@@ -22,7 +23,23 @@ export default function WelcomeScreen({ onPromptClick }) {
         </svg>
       </div>
       <h1 className="welcome-title">Hello! I'm <span className="gradient-text">Westy</span></h1>
-      <p className="welcome-subtitle">Your AI assistant. Ask me anything — from coding to creative writing, language translation to learning.</p>
+      
+      <div className="welcome-roller-tag glass">
+        <span className="welcome-roller-prefix">Ready for</span>
+        <VerticalWordRoller 
+          interval={2600}
+          items={[
+            { text: 'Code & Architecture', icon: '💻' },
+            { text: 'Live Web Knowledge', icon: '🌐' },
+            { text: 'Yorùbá, Igbo & Pidgin', icon: '🗣️' },
+            { text: 'Vision & Multimodal', icon: '👁️' },
+            { text: 'Creative Writing', icon: '📝' },
+            { text: 'Complex Reasoning', icon: '⚡' }
+          ]} 
+        />
+      </div>
+
+      <p className="welcome-subtitle">Your AI companion. Ask me anything — from complex software engineering to native African dialects and live web exploration.</p>
       
       <div className="welcome-prompts">
         {prompts.map((p, i) => (

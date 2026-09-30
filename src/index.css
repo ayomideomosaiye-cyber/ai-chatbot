@@ -3644,3 +3644,290 @@ a:hover { opacity: 0.85; }
   transform: scale(0.97);
 }
 
+/* =============================================================
+   MOTION CURSOR (Fluid Aura & Precision Center Dot)
+   ============================================================= */
+.motion-cursor-root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 999999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.motion-cursor-root.visible {
+  opacity: 1;
+}
+
+.motion-cursor-dot {
+  position: fixed;
+  top: -4px;
+  left: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent-purple);
+  pointer-events: none;
+  transform: translate3d(-100px, -100px, 0);
+  transition: transform 0.04s ease-out, width 0.2s ease, height 0.2s ease;
+}
+
+.motion-cursor-dot.hovered {
+  width: 12px;
+  height: 12px;
+  top: -6px;
+  left: -6px;
+  background: #ffffff;
+  box-shadow: 0 0 14px #ffffff, 0 0 25px var(--accent);
+}
+
+.motion-cursor-dot.clicking {
+  transform: scale(0.7);
+}
+
+.motion-cursor-ring {
+  position: fixed;
+  top: -20px;
+  left: -20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0, 245, 212, 0.45);
+  background: radial-gradient(circle, rgba(0, 245, 212, 0.12) 0%, rgba(123, 44, 191, 0.06) 65%, transparent 85%);
+  pointer-events: none;
+  transform: translate3d(-100px, -100px, 0);
+  transition: border-color 0.25s ease, background 0.25s ease, width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1), top 0.3s, left 0.3s;
+  box-shadow: 0 0 15px rgba(0, 245, 212, 0.2);
+}
+
+.motion-cursor-ring.hovered {
+  width: 60px;
+  height: 60px;
+  top: -30px;
+  left: -30px;
+  border: 1.5px solid var(--accent);
+  background: radial-gradient(circle, rgba(0, 245, 212, 0.22) 0%, rgba(123, 44, 191, 0.18) 70%, transparent 90%);
+  box-shadow: 0 0 25px rgba(0, 245, 212, 0.4), inset 0 0 12px rgba(123, 44, 191, 0.25);
+}
+
+.motion-cursor-ring.clicking {
+  width: 32px;
+  height: 32px;
+  top: -16px;
+  left: -16px;
+  border-color: #ff4d6d;
+}
+
+/* Cursor Toggle Button Pill */
+.cursor-toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-glass);
+  background: var(--bg-glass);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cursor-toggle-pill:hover {
+  color: #fff;
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 245, 212, 0.2);
+}
+
+.cursor-toggle-pill.active {
+  color: var(--accent);
+  border-color: rgba(0, 245, 212, 0.5);
+  background: rgba(0, 245, 212, 0.08);
+}
+
+.cursor-dot-icon {
+  font-size: 13px;
+  color: var(--accent);
+  animation: pulse-star 2s infinite;
+}
+
+/* =============================================================
+   PXXL.APP STYLE DOWNWARD ROLLING WORD ANIMATION
+   ============================================================= */
+.pxxl-roller-stage {
+  display: inline-flex;
+  height: 1.45em;
+  position: relative;
+  vertical-align: bottom;
+  overflow: hidden;
+  min-width: 320px;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  perspective: 600px;
+}
+
+.pxxl-roller-item {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+  backface-visibility: hidden;
+  will-change: transform, opacity, filter;
+}
+
+.pxxl-roller-icon {
+  font-size: 1.15em;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+
+.pxxl-roller-text {
+  font-size: inherit;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+/* Drops DOWNWARDS and exits */
+.pxxl-roller-item.drop-down-exit {
+  animation: pxxlDropExit 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Enters from TOP and drops DOWNWARDS into center with subtle spring */
+.pxxl-roller-item.drop-down-enter {
+  transform: translateY(-130%) scale(0.92);
+  opacity: 0;
+  filter: blur(6px);
+}
+
+.pxxl-roller-item.drop-down-active {
+  animation: pxxlDropEnter 0.45s cubic-bezier(0.16, 1.2, 0.3, 1) forwards;
+}
+
+@keyframes pxxlDropExit {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    transform: translateY(130%) scale(0.92);
+    opacity: 0;
+    filter: blur(8px);
+  }
+}
+
+@keyframes pxxlDropEnter {
+  0% {
+    transform: translateY(-130%) scale(0.92);
+    opacity: 0;
+    filter: blur(8px);
+  }
+  75% {
+    transform: translateY(4px) scale(1.02);
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+/* Welcome Screen Roller Tag */
+.welcome-roller-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px;
+  border-radius: 30px;
+  border: 1px solid var(--border-glass-strong);
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.4s ease-out;
+}
+
+.welcome-roller-prefix {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.welcome-roller-tag .pxxl-roller-stage {
+  min-width: 230px;
+  height: 1.3em;
+}
+
+.welcome-roller-tag .pxxl-roller-text {
+  font-size: 14px;
+}
+
+/* =============================================================
+   ENHANCED HOVER & MOTION ANIMATIONS ACROSS APP
+   ============================================================= */
+/* Interactive Cards Lift & Glow */
+.welcome-prompt,
+.feature-card,
+.stat-card,
+.conv-item,
+.dialect-pill,
+.suggestion-pill-button {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.25s ease, 
+              background 0.25s ease !important;
+}
+
+.welcome-prompt:hover {
+  transform: translateY(-6px) scale(1.02);
+  border-color: rgba(0, 245, 212, 0.5) !important;
+  box-shadow: 0 14px 30px rgba(0, 245, 212, 0.15), 0 0 20px rgba(123, 44, 191, 0.2) !important;
+}
+
+.suggestion-pill-button:hover {
+  transform: translateY(-3px) scale(1.03);
+  border-color: var(--accent) !important;
+  box-shadow: 0 6px 18px rgba(0, 245, 212, 0.25) !important;
+}
+
+.suggestion-pill-button:hover .pill-arrow {
+  transform: translate(2px, -2px);
+}
+
+.dialect-pill:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent) !important;
+  box-shadow: 0 4px 12px rgba(0, 245, 212, 0.2);
+}
+
+.chat-header-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 245, 212, 0.35);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.sidebar-new-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 245, 212, 0.25);
+}
+
+

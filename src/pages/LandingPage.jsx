@@ -4,6 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { languages } from '../utils/languages';
 import NeuralCoreCanvas from '../components/NeuralCoreCanvas';
 import FlagBadge from '../components/FlagBadge';
+import VerticalWordRoller from '../components/VerticalWordRoller';
+import { toggleMotionCursor, isMotionCursorEnabled } from '../components/MotionCursor';
 import { playPop, playChime, playTick } from '../utils/audio';
 
 export default function LandingPage() {
@@ -13,6 +15,14 @@ export default function LandingPage() {
   const [activeMode, setActiveMode] = useState('yoruba');
   const [customInput, setCustomInput] = useState('');
   const [isCopied, setIsCopied] = useState(false);
+  const [cursorOn, setCursorOn] = useState(() => isMotionCursorEnabled());
+
+  const handleCursorToggle = () => {
+    playTick();
+    const updated = toggleMotionCursor();
+    setCursorOn(updated);
+  };
+
 
   // Rotating prompt placeholders
   const rotatingPrompts = [
@@ -127,6 +137,16 @@ export default function LandingPage() {
           </nav>
 
           <div className="landing-nav-actions">
+            {/* Custom Interactive Motion Cursor Switch */}
+            <button 
+              className={`cursor-toggle-pill glass ${cursorOn ? 'active' : ''}`} 
+              onClick={handleCursorToggle}
+              title={cursorOn ? 'Interactive Motion Cursor: ON (Click to toggle)' : 'Interactive Motion Cursor: OFF (Click to toggle)'}
+            >
+              <span className="cursor-dot-icon">✦</span>
+              <span className="cursor-toggle-text">Cursor {cursorOn ? 'ON' : 'OFF'}</span>
+            </button>
+
             {user ? (
               <>
                 {user.isAdmin && (
@@ -162,8 +182,8 @@ export default function LandingPage() {
           </div>
 
           <h1 className="hero-title portal-title">
-            Where thoughts become <br />
-            <span className="gradient-text text-glow">conversations.</span>
+            Next-Gen AI built for <br />
+            <VerticalWordRoller />
           </h1>
 
           <p className="hero-subtitle portal-subtitle">

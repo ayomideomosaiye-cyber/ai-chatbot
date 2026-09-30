@@ -135,22 +135,49 @@ function adminMiddleware(req, res, next) {
   next();
 }
 
-app.post('/api/auth/signup', (req, res) => {
+// In-Memory Rate Limiting
+const rateLimitMap = new Map();
+
+function rateLimiter(limit = 60, windowMs = 60000) {
+  return (req, res, next) => {
+    const ip = req.ip || req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'client';
+    const now = Date.now();
+    let record = rateLimitMap.get(ip);
+
+    if (!record || now > record.resetTime) {
+      record = { count: 1, resetTime: now + windowMs };
+      rateLimitMap.set(ip, record);
+    } else {
+      record.count += 1;
+    }
+
+    if (record.count > limit) {
+      return res.status(429).json({ 
+        error: 'Too many requests. Please slow down and wait a minute.' 
+      });
+    }
+
+    next();
+  };
+}
+
+app.post('/api/auth/signup', rateLimiter(10, 60000), (req, res) => {
   const { username, email, password } = req.body;
   if (!username || !email || !password || password.length < 6) {
-    return res.status(400).json({ error: 'Invalid input' });
+    return res.status(400).json({ error: 'Invalid input. Password must be at least 6 characters.' });
   }
-  if (users.find(u => u.email === email)) {
+  if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
     return res.status(400).json({ error: 'Email already in use' });
   }
   const salt = bcrypt.genSaltSync(10);
   const hash = bcrypt.hashSync(password, salt);
+  const isDefaultAdmin = email.toLowerCase() === 'admin@westy.ai';
   const newUser = {
     id: crypto.randomUUID(),
-    username,
-    email,
+    username: username.trim(),
+    email: email.trim().toLowerCase(),
     password: hash,
-    isAdmin: users.length === 0,
+    isAdmin: isDefaultAdmin,
     isBanned: false,
     createdAt: new Date().toISOString(),
     lastActive: new Date().toISOString(),
@@ -166,14 +193,14 @@ app.post('/api/auth/signup', (req, res) => {
   res.json({ user: userWithoutPass, token });
 });
 
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', rateLimiter(15, 60000), (req, res) => {
   const { email, password } = req.body;
-  const user = users.find(u => u.email === email);
+  const user = users.find(u => u.email.toLowerCase() === (email || '').toLowerCase());
   if (!user || !bcrypt.compareSync(password, user.password)) {
-    return res.status(401).json({ error: 'Invalid credentials' });
+    return res.status(401).json({ error: 'Invalid email or password' });
   }
   if (user.isBanned) {
-    return res.status(403).json({ error: 'Account banned' });
+    return res.status(403).json({ error: 'This account has been suspended by an administrator.' });
   }
   user.lastActive = new Date().toISOString();
   saveUsers();
@@ -183,6 +210,7 @@ app.post('/api/auth/login', (req, res) => {
   const { password: _, ...userWithoutPass } = user;
   res.json({ user: userWithoutPass, token });
 });
+
 
 
 app.get('/api/auth/me', authMiddleware, (req, res) => {
@@ -257,7 +285,7 @@ async function searchWebKnowledge(query) {
   }
 }
 
-app.post('/api/chat', authMiddleware, async (req, res) => {
+app.post('/api/chat', authMiddleware, rateLimiter(35, 60000), async (req, res) => {
   const { message = '', conversationId, language = 'en', persona = 'balanced', image = null } = req.body;
   const langName = languages[language] || 'English';
   

@@ -9,6 +9,7 @@ import ChatInput from '../components/ChatInput';
 import LanguageSelector from '../components/LanguageSelector';
 import PersonaSelector from '../components/PersonaSelector';
 import { playPop, playChime, playTick, isSoundEnabled, toggleSound, stopSpeakingTTS } from '../utils/audio';
+import { toggleMotionCursor, isMotionCursorEnabled } from '../components/MotionCursor';
 
 export default function ChatPage() {
   const { user, logout } = useAuth();
@@ -22,9 +23,11 @@ export default function ChatPage() {
   const [persona, setPersona] = useState(localStorage.getItem('westy_persona') || 'balanced');
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
+  const [cursorOn, setCursorOn] = useState(() => isMotionCursorEnabled());
   const [lastResponseTime, setLastResponseTime] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
   const [ttsActive, setTtsActive] = useState(false);
+
 
   useEffect(() => {
     const handleTtsState = (e) => {
@@ -179,6 +182,15 @@ export default function ChatPage() {
     const updated = toggleSound();
     setSoundOn(updated);
   };
+
+  const handleCursorToggle = () => {
+    playTick();
+    const updated = toggleMotionCursor();
+    setCursorOn(updated);
+    setToastMessage(`✨ Motion Cursor ${updated ? 'Enabled' : 'Disabled'}`);
+    setTimeout(() => setToastMessage(null), 2000);
+  };
+
 
 
   const exportChat = () => {
@@ -397,6 +409,19 @@ export default function ChatPage() {
                 </svg>
               )}
             </button>
+
+            {/* Motion Cursor Toggle Button */}
+            <button 
+              className={`chat-header-btn ${cursorOn ? 'active' : ''}`}
+              onClick={handleCursorToggle}
+              title={cursorOn ? 'Motion Cursor: ON (Click to disable)' : 'Motion Cursor: OFF (Click to enable)'}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="3" fill={cursorOn ? "var(--accent)" : "none"} />
+                <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/>
+              </svg>
+            </button>
+
 
             {/* Live TTS Stop Button in Header */}
             {ttsActive && (
