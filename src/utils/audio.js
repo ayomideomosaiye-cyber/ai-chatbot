@@ -96,3 +96,68 @@ export function playTick() {
     osc.stop(now + 0.035);
   } catch (e) {}
 }
+
+// -------------------------------------------------------------
+// Speech Synthesis (Text-To-Speech) Controls
+// -------------------------------------------------------------
+let activeUtterance = null;
+
+export function isSpeakingTTS() {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return false;
+  return window.speechSynthesis.speaking;
+}
+
+export function stopSpeakingTTS() {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+  try {
+    window.speechSynthesis.cancel();
+    activeUtterance = null;
+    window.dispatchEvent(new CustomEvent('westy-tts-change', { detail: { speaking: false } }));
+  } catch (e) {
+    console.error('Failed to cancel speech synthesis:', e);
+  }
+}
+
+export function speakText(rawText, onStart, onEnd) {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    alert('Speech synthesis is not supported in this browser.');
+    return;
+  }
+
+  // Cancel any ongoing speech first
+  stopSpeakingTTS();
+
+  // Strip code blocks, markdown symbols, and suggestions
+  const clean = rawText
+    .replace(/```[\s\S]*?```/g, ' [code block] ')
+    .replace(/\[SUGGESTIONS:[^\]]*\]/g, '')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/[*_~#>-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!clean) return;
+
+  const utterance = new SpeechSynthesisUtterance(clean);
+  activeUtterance = utterance; // keep module-level reference to prevent garbage-collection bug
+
+  utterance.onstart = () => {
+    window.dispatchEvent(new CustomEvent('westy-tts-change', { detail: { speaking: true } }));
+    if (onStart) onStart();
+  };
+
+  utterance.onend = () => {
+    activeUtterance = null;
+    window.dispatchEvent(new CustomEvent('westy-tts-change', { detail: { speaking: false } }));
+    if (onEnd) onEnd();
+  };
+
+  utterance.onerror = () => {
+    activeUtterance = null;
+    window.dispatchEvent(new CustomEvent('westy-tts-change', { detail: { speaking: false } }));
+    if (onEnd) onEnd();
+  };
+
+  window.speechSynthesis.speak(utterance);
+}
+

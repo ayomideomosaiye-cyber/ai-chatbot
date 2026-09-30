@@ -1,12 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MarkdownRenderer from './MarkdownRenderer';
-import { playPop, playTick } from '../utils/audio';
+import { playPop, playTick, speakText, stopSpeakingTTS } from '../utils/audio';
 
 export default function MessageBubble({ message, onRegenerate, isLast, onSuggestionClick }) {
   const [showActions, setShowActions] = useState(false);
   const [copied, setCopied] = useState(false);
   const [reaction, setReaction] = useState(null);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  useEffect(() => {
+    const handleTtsChange = (e) => {
+      if (!e.detail?.speaking) {
+        setIsSpeaking(false);
+      }
+    };
+    window.addEventListener('westy-tts-change', handleTtsChange);
+    return () => window.removeEventListener('westy-tts-change', handleTtsChange);
+  }, []);
 
   const isAi = message.role === 'ai' || message.role === 'model';
 
@@ -34,13 +45,21 @@ export default function MessageBubble({ message, onRegenerate, isLast, onSuggest
   };
 
   const handleListen = () => {
-    if ('speechSynthesis' in window) {
-      playTick();
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(cleanText);
-      window.speechSynthesis.speak(utterance);
+    playTick();
+    if (isSpeaking) {
+      stopSpeakingTTS();
+      setIsSpeaking(false);
+      return;
     }
+
+    setIsSpeaking(true);
+    speakText(
+      cleanText,
+      () => setIsSpeaking(true),
+      () => setIsSpeaking(false)
+    );
   };
+
 
   const toggleReaction = (emoji) => {
     playTick();
@@ -104,7 +123,7 @@ export default function MessageBubble({ message, onRegenerate, isLast, onSuggest
         </div>
 
         {/* Action icons */}
-        <div className="message-actions" style={{ opacity: showActions ? 1 : 0 }}>
+        <div className="message-actions" style={{ opacity: (showActions || isSpeaking) ? 1 : 0 }}>
           <button onClick={handleCopy} title="Copy response">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
@@ -124,12 +143,27 @@ export default function MessageBubble({ message, onRegenerate, isLast, onSuggest
           )}
 
           {isAi && (
-            <button onClick={handleListen} title="Read aloud">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
-              </svg>
-              Listen
+            <button 
+              onClick={handleListen} 
+              className={isSpeaking ? 'voice-stop-btn-active' : ''}
+              title={isSpeaking ? "Stop Voice" : "Read aloud"}
+            >
+              {isSpeaking ? (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="4" y="4" width="16" height="16" rx="3"/>
+                  </svg>
+                  <span>Stop Voice</span>
+                </>
+              ) : (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                  </svg>
+                  Listen
+                </>
+              )}
             </button>
           )}
         </div>

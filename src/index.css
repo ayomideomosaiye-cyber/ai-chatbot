@@ -3539,3 +3539,108 @@ a:hover { opacity: 0.85; }
   border-radius: var(--radius-md);
   cursor: pointer;
 }
+
+/* --- Voice TTS Stop Controls --- */
+.message-actions button.voice-stop-btn-active {
+  background: rgba(239, 68, 68, 0.22) !important;
+  color: #ff4d6d !important;
+  border: 1px solid rgba(239, 68, 68, 0.5) !important;
+  font-weight: 600;
+  animation: pulse-border-red 1.6s infinite;
+}
+.message-actions button.voice-stop-btn-active:hover {
+  background: rgba(239, 68, 68, 0.4) !important;
+  color: #ffffff !important;
+}
+
+.stop-tts-header-btn {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #ff4d6d !important;
+  border: 1px solid rgba(239, 68, 68, 0.5) !important;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  animation: pulse-border-red 1.8s infinite;
+}
+.stop-tts-header-btn:hover {
+  background: rgba(239, 68, 68, 0.4) !important;
+  color: #ffffff !important;
+}
+
+@keyframes pulse-border-red {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.45); }
+  70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* Floating TTS Bar */
+.floating-tts-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  max-width: 816px;
+  margin: 0 auto 10px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  background: rgba(18, 20, 29, 0.92);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(14px);
+  animation: slideDownFade 0.25s ease-out;
+  z-index: 50;
+}
+
+.tts-pulse-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 16px;
+}
+.tts-bar {
+  width: 3.5px;
+  background: #ff4d6d;
+  border-radius: 2px;
+  animation: waveTts 0.8s ease-in-out infinite alternate;
+}
+.tts-bar.b1 { height: 6px; animation-delay: 0.1s; }
+.tts-bar.b2 { height: 14px; animation-delay: 0.25s; }
+.tts-bar.b3 { height: 10px; animation-delay: 0.15s; }
+.tts-bar.b4 { height: 16px; animation-delay: 0.35s; }
+
+@keyframes waveTts {
+  0% { height: 4px; }
+  100% { height: 16px; }
+}
+
+.tts-banner-text {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 600;
+  flex: 1;
+}
+
+.tts-stop-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(239, 68, 68, 0.6);
+  background: #e63946;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 10px rgba(230, 57, 70, 0.35);
+}
+.tts-stop-pill:hover {
+  background: #d62828;
+  transform: scale(1.04);
+}
+.tts-stop-pill:active {
+  transform: scale(0.97);
+}
+

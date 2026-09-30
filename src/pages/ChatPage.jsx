@@ -8,7 +8,7 @@ import ThinkingIndicator from '../components/ThinkingIndicator';
 import ChatInput from '../components/ChatInput';
 import LanguageSelector from '../components/LanguageSelector';
 import PersonaSelector from '../components/PersonaSelector';
-import { playPop, playChime, playTick, isSoundEnabled, toggleSound } from '../utils/audio';
+import { playPop, playChime, playTick, isSoundEnabled, toggleSound, stopSpeakingTTS } from '../utils/audio';
 
 export default function ChatPage() {
   const { user, logout } = useAuth();
@@ -24,6 +24,19 @@ export default function ChatPage() {
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
   const [lastResponseTime, setLastResponseTime] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
+  const [ttsActive, setTtsActive] = useState(false);
+
+  useEffect(() => {
+    const handleTtsState = (e) => {
+      setTtsActive(!!e.detail?.speaking);
+    };
+    window.addEventListener('westy-tts-change', handleTtsState);
+    return () => {
+      window.removeEventListener('westy-tts-change', handleTtsState);
+      stopSpeakingTTS();
+    };
+  }, []);
+
   
   const messagesEndRef = useRef(null);
   const isStreamingRef = useRef(false);
@@ -60,6 +73,7 @@ export default function ChatPage() {
   useEffect(() => {
     const fetchMessages = async () => {
       if (isStreamingRef.current) return;
+      stopSpeakingTTS();
       if (activeConversationId) {
         try {
           const conv = await apiGet(`/conversations/${activeConversationId}`);
@@ -126,6 +140,7 @@ export default function ChatPage() {
 
   const newChat = () => {
     playTick();
+    stopSpeakingTTS();
     setActiveConversationId(null);
     setMessages([]);
     localStorage.removeItem('westy_active_conv');
@@ -134,6 +149,7 @@ export default function ChatPage() {
   const deleteConversation = async (id) => {
     try {
       playTick();
+      stopSpeakingTTS();
       await apiDelete(`/conversations/${id}`);
       setConversations(prev => prev.filter(c => c.id !== id));
       if (activeConversationId === id) {
@@ -159,9 +175,11 @@ export default function ChatPage() {
   };
 
   const handleSoundToggle = () => {
+    stopSpeakingTTS();
     const updated = toggleSound();
     setSoundOn(updated);
   };
+
 
   const exportChat = () => {
     if (messages.length === 0) return;
@@ -194,6 +212,7 @@ export default function ChatPage() {
 
     if (!textToSend.trim() && !imageToSend) return;
 
+    stopSpeakingTTS();
     playPop();
     const startTime = Date.now();
     const userMsg = { 
@@ -379,6 +398,20 @@ export default function ChatPage() {
               )}
             </button>
 
+            {/* Live TTS Stop Button in Header */}
+            {ttsActive && (
+              <button 
+                className="chat-header-btn stop-tts-header-btn pulse-glow" 
+                onClick={stopSpeakingTTS}
+                title="Stop reading aloud"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="4" y="4" width="16" height="16" rx="3" />
+                </svg>
+                <span>Stop Voice</span>
+              </button>
+            )}
+
             {/* Language Dropdown */}
             <LanguageSelector value={language} onChange={handleLanguageChange} />
           </div>
@@ -432,6 +465,25 @@ export default function ChatPage() {
           {isTyping && <ThinkingIndicator />}
           <div ref={messagesEndRef} />
         </div>
+
+        {/* Floating Voice Stop Bar when speaking */}
+        {ttsActive && (
+          <div className="floating-tts-bar glass">
+            <div className="tts-pulse-bars">
+              <span className="tts-bar b1"></span>
+              <span className="tts-bar b2"></span>
+              <span className="tts-bar b3"></span>
+              <span className="tts-bar b4"></span>
+            </div>
+            <span className="tts-banner-text">Westy is reading aloud...</span>
+            <button className="tts-stop-pill" onClick={stopSpeakingTTS} title="Stop voice now">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="4" y="4" width="16" height="16" rx="3" />
+              </svg>
+              <span>Stop Voice</span>
+            </button>
+          </div>
+        )}
 
         {/* Input Bar with Multimodal Attachment */}
         <ChatInput 
