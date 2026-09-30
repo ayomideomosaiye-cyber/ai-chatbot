@@ -30,15 +30,41 @@ app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
-const dataDir = path.join(__dirname, 'data');
+// Normalize URL paths if Vercel serverless strips /api prefix
+app.use((req, res, next) => {
+  if (!req.url.startsWith('/api') && req.url !== '/' && !req.url.startsWith('/assets')) {
+    req.url = `/api${req.url}`;
+  }
+  next();
+});
+
+// Persistent Storage Directory (Supports both Local Node.js and Vercel Serverless /tmp)
+const isVercel = !!process.env.VERCEL;
+const baseDataDir = path.join(__dirname, 'data');
+const dataDir = isVercel ? path.join('/tmp', 'westy_data') : baseDataDir;
+
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
+}
+
+// Seed initial files to /tmp when running on Vercel
+if (isVercel && fs.existsSync(baseDataDir)) {
+  ['users.json', 'conversations.json', 'settings.json'].forEach(file => {
+    const src = path.join(baseDataDir, file);
+    const dest = path.join(dataDir, file);
+    if (!fs.existsSync(dest) && fs.existsSync(src)) {
+      try {
+        fs.copyFileSync(src, dest);
+      } catch (e) {}
+    }
+  });
 }
 
 const usersFile = path.join(dataDir, 'users.json');
 const conversationsFile = path.join(dataDir, 'conversations.json');
 const settingsFile = path.join(dataDir, 'settings.json');
 const tokensFile = path.join(dataDir, 'tokens.json');
+
 
 let users = [];
 let conversations = [];
@@ -552,13 +578,18 @@ app.put('/api/admin/settings', authMiddleware, adminMiddleware, (req, res) => {
 });
 
 const distDir = path.join(__dirname, 'dist');
-if (fs.existsSync(distDir)) {
+if (!isVercel && fs.existsSync(distDir)) {
   app.use(express.static(distDir));
   app.get('*', (req, res) => {
     res.sendFile(path.join(distDir, 'index.html'));
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`Westy server running on port ${PORT}`);
-});
+if (!isVercel) {
+  app.listen(PORT, () => {
+    console.log(`Westy server running on port ${PORT}`);
+  });
+}
+
+export default app;
+
