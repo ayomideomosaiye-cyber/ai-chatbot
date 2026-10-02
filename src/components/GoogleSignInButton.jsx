@@ -1,8 +1,10 @@
 import React, { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function GoogleSignInButton() {
   const { loginWithGoogle } = useAuth();
+  const navigate = useNavigate();
   const btnRef = useRef(null);
   const initialized = useRef(false);
 
@@ -47,6 +49,7 @@ export default function GoogleSignInButton() {
   async function handleCredentialResponse(response) {
     try {
       await loginWithGoogle(response.credential);
+      navigate('/chat');
     } catch (err) {
       console.error('Google sign-in failed:', err);
       alert(err.message || 'Google sign-in failed');
