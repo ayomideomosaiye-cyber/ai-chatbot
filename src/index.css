@@ -291,6 +291,38 @@ a:hover { opacity: 0.85; }
   margin-left: 4px;
 }
 
+/* Google Sign-In */
+.google-signin-wrapper {
+  width: 100%;
+  margin-top: 8px;
+}
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+}
+.auth-divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border-glass);
+}
+.auth-divider-text {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+.google-signin-btn {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+.google-signin-btn > div {
+  width: 100% !important;
+}
+
 /* ============================================
    CHAT LAYOUT
    ============================================ */

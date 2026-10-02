@@ -98,10 +98,29 @@ export function AuthProvider({ children }) {
     navigate('/login');
   };
 
+  const loginWithGoogle = async (credential) => {
+    const res = await fetch('/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential })
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Google login failed');
+    }
+
+    const data = await res.json();
+    localStorage.setItem('westy_token', data.token);
+    localStorage.setItem('westy_user', JSON.stringify(data.user));
+    setToken(data.token);
+    setUser(data.user);
+  };
+
   const isAdmin = user?.isAdmin || false;
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, signup, logout, isAdmin }}>
+    <AuthContext.Provider value={{ user, token, loading, login, signup, logout, loginWithGoogle, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

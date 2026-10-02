@@ -244,6 +244,68 @@ app.get('/api/auth/me', authMiddleware, (req, res) => {
   res.json({ user: userWithoutPass });
 });
 
+// Google OAuth: verify Google ID token and create/login user
+app.post('/api/auth/google', rateLimiter(15, 60000), async (req, res) => {
+  const { credential } = req.body;
+  if (!credential) {
+    return res.status(400).json({ error: 'Missing Google credential' });
+  }
+
+  try {
+    // Verify the Google ID token using Google's tokeninfo endpoint
+    const verifyRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+    if (!verifyRes.ok) {
+      return res.status(401).json({ error: 'Invalid Google credential' });
+    }
+    const payload = await verifyRes.json();
+
+    const googleEmail = payload.email?.toLowerCase();
+    const googleName = payload.name || payload.given_name || googleEmail.split('@')[0];
+
+    if (!googleEmail || payload.email_verified === 'false') {
+      return res.status(400).json({ error: 'Google account email not verified' });
+    }
+
+    // Find or create user
+    let user = users.find(u => u.email.toLowerCase() === googleEmail);
+
+    if (user) {
+      // Existing user — update last active
+      if (user.isBanned) {
+        return res.status(403).json({ error: 'This account has been suspended by an administrator.' });
+      }
+      user.lastActive = new Date().toISOString();
+      saveUsers();
+    } else {
+      // New user — auto-register
+      user = {
+        id: crypto.randomUUID(),
+        username: googleName,
+        email: googleEmail,
+        password: bcrypt.hashSync(crypto.randomUUID(), 10), // random password (won't be used)
+        isAdmin: false,
+        isBanned: false,
+        createdAt: new Date().toISOString(),
+        lastActive: new Date().toISOString(),
+        messageCount: 0,
+        preferredLanguage: 'en',
+        authProvider: 'google'
+      };
+      users.push(user);
+      saveUsers();
+    }
+
+    const token = crypto.randomUUID();
+    tokens.set(token, user.id);
+    saveTokens();
+    const { password: _, ...userWithoutPass } = user;
+    res.json({ user: userWithoutPass, token });
+  } catch (err) {
+    console.error('Google auth error:', err);
+    res.status(500).json({ error: 'Google authentication failed' });
+  }
+});
+
 const languages = { en: 'English', yo: 'Yoruba', ig: 'Igbo', ha: 'Hausa', pcm: 'Nigerian Pidgin English', zh: 'Chinese (Simplified)', es: 'Spanish', fr: 'French', ar: 'Arabic', hi: 'Hindi', pt: 'Portuguese', ja: 'Japanese', ko: 'Korean', de: 'German', sw: 'Swahili', zu: 'Zulu' };
 
 const personaPrompts = {

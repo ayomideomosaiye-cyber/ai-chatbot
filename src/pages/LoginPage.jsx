@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 
 export default function LoginPage() {
   const { user, login } = useAuth();
@@ -77,6 +78,8 @@ export default function LoginPage() {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
+
+        <GoogleSignInButton />
         
         <div className="auth-footer">
           Don't have an account? <Link to="/signup" className="auth-link">Sign up</Link>
