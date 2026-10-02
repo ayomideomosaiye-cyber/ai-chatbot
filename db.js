@@ -49,10 +49,45 @@ const baseDataDir = path.join(__dirname, 'data');
 const dataDir = isVercel ? path.join('/tmp', 'westy_data') : baseDataDir;
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
+// Seed initial files to /tmp when running on Vercel
+if (isVercel && fs.existsSync(baseDataDir)) {
+  ['users.json', 'conversations.json', 'settings.json'].forEach(file => {
+    const src = path.join(baseDataDir, file);
+    const dest = path.join(dataDir, file);
+    if (!fs.existsSync(dest) && fs.existsSync(src)) {
+      try {
+        fs.copyFileSync(src, dest);
+      } catch (e) {}
+    }
+  });
+}
+
 const usersFile = path.join(dataDir, 'users.json');
 const conversationsFile = path.join(dataDir, 'conversations.json');
 const settingsFile = path.join(dataDir, 'settings.json');
 const tokensFile = path.join(dataDir, 'tokens.json');
+
+// Ensure default admin always exists in fallback
+function ensureDefaultAdmin(usersList) {
+  if (!usersList.some(u => u.email === 'admin@westy.ai')) {
+    usersList.push({
+      id: 'default-admin-id',
+      username: 'Admin',
+      email: 'admin@westy.ai',
+      password: '$2a$10$.Rb51y1oS6f5rPIyX1jd1.pOaE059vTYUUo1boRTfQIdkIroRB4S.', // admin123
+      isAdmin: true,
+      isBanned: false,
+      createdAt: new Date().toISOString(),
+      lastActive: new Date().toISOString(),
+      messageCount: 0,
+      preferredLanguage: 'en'
+    });
+    try {
+      fs.writeFileSync(usersFile, JSON.stringify(usersList, null, 2));
+    } catch (e) {}
+  }
+  return usersList;
+}
 
 function readJsonFile(file, def) {
   try {
@@ -74,24 +109,24 @@ export async function getUsers() {
   if (firestore) {
     try {
       const snapshot = await firestore.collection('users').get();
-      return snapshot.docs.map(doc => doc.data());
+      if (!snapshot.empty) return snapshot.docs.map(doc => doc.data());
     } catch (e) {
       console.error('Firestore getUsers error:', e);
     }
   }
-  return readJsonFile(usersFile, []);
+  return ensureDefaultAdmin(readJsonFile(usersFile, []));
 }
 
 export async function getUserById(id) {
   if (firestore) {
     try {
       const doc = await firestore.collection('users').doc(id).get();
-      return doc.exists ? doc.data() : null;
+      if (doc.exists) return doc.data();
     } catch (e) {
       console.error('Firestore getUserById error:', e);
     }
   }
-  const users = readJsonFile(usersFile, []);
+  const users = ensureDefaultAdmin(readJsonFile(usersFile, []));
   return users.find(u => u.id === id) || null;
 }
 
@@ -109,7 +144,7 @@ export async function getUserByEmail(email) {
       console.error('Firestore getUserByEmail error:', e);
     }
   }
-  const users = readJsonFile(usersFile, []);
+  const users = ensureDefaultAdmin(readJsonFile(usersFile, []));
   return users.find(u => u.email && u.email.toLowerCase() === target) || null;
 }
 
