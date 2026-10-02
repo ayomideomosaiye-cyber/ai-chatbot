@@ -8,25 +8,40 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let firestore = null;
+let firebaseInitError = null;
 
 // Initialize Firebase Admin
 try {
   let credential = null;
   const keyPath = path.join(__dirname, 'firebase-key.json');
 
-  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  let rawKey = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (rawKey) {
     try {
-      const parsed = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      rawKey = rawKey.trim();
+      if ((rawKey.startsWith("'") && rawKey.endsWith("'")) || 
+          (rawKey.startsWith('"') && rawKey.endsWith('"') && rawKey.includes('\\"'))) {
+        rawKey = rawKey.slice(1, -1);
+      }
+      const parsed = JSON.parse(rawKey);
+      if (parsed.private_key) {
+        parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
+      }
       credential = cert(parsed);
     } catch (e) {
-      console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT env var:', e);
+      firebaseInitError = `Failed to parse FIREBASE_SERVICE_ACCOUNT: ${e.message}`;
+      console.error(firebaseInitError);
     }
   } else if (fs.existsSync(keyPath)) {
     try {
       const parsed = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
+      if (parsed.private_key) {
+        parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
+      }
       credential = cert(parsed);
     } catch (e) {
-      console.error('Failed to read firebase-key.json:', e);
+      firebaseInitError = `Failed to read firebase-key.json: ${e.message}`;
+      console.error(firebaseInitError);
     }
   }
 
@@ -37,10 +52,14 @@ try {
     firestore = getFirestore(app);
     console.log('✅ Firebase Firestore connected successfully');
   } else {
-    console.warn('⚠️ No Firebase credentials found. Running in local file fallback mode.');
+    if (!firebaseInitError) {
+      firebaseInitError = 'No Firebase credentials found in env or file.';
+    }
+    console.warn('⚠️ No Firebase credentials found. Running in local file fallback mode:', firebaseInitError);
   }
 } catch (err) {
-  console.error('Firebase initialization error:', err);
+  firebaseInitError = `Firebase initialization error: ${err.message}`;
+  console.error(firebaseInitError);
 }
 
 // Local fallback helpers
@@ -321,4 +340,4 @@ export async function saveSettings(newSettings) {
   return merged;
 }
 
-export { firestore };
+export { firestore, firebaseInitError };
