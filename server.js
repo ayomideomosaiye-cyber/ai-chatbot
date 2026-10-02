@@ -5,6 +5,22 @@ import path from 'path';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
+import {
+  getUsers,
+  getUserById,
+  getUserByEmail,
+  saveUser,
+  getUserIdByToken,
+  setToken,
+  deleteToken,
+  getConversations,
+  getUserConversations,
+  getConversationById,
+  saveConversation,
+  deleteConversation,
+  getSettings,
+  saveSettings
+} from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,119 +51,21 @@ app.use((req, res, next) => {
   if (!req.url.startsWith('/api') && req.url !== '/' && !req.url.startsWith('/assets')) {
     req.url = `/api${req.url}`;
   }
-  loadData();
   next();
 });
 
-// Persistent Storage Directory (Supports both Local Node.js and Vercel Serverless /tmp)
-const isVercel = !!process.env.VERCEL;
-const baseDataDir = path.join(__dirname, 'data');
-const dataDir = isVercel ? path.join('/tmp', 'westy_data') : baseDataDir;
-
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
-
-// Seed initial files to /tmp when running on Vercel
-if (isVercel && fs.existsSync(baseDataDir)) {
-  ['users.json', 'conversations.json', 'settings.json'].forEach(file => {
-    const src = path.join(baseDataDir, file);
-    const dest = path.join(dataDir, file);
-    if (!fs.existsSync(dest) && fs.existsSync(src)) {
-      try {
-        fs.copyFileSync(src, dest);
-      } catch (e) {}
-    }
-  });
-}
-
-const usersFile = path.join(dataDir, 'users.json');
-const conversationsFile = path.join(dataDir, 'conversations.json');
-const settingsFile = path.join(dataDir, 'settings.json');
-const tokensFile = path.join(dataDir, 'tokens.json');
-
-
-let users = [];
-let conversations = [];
-let settings = {};
-const tokens = new Map(); // token -> userId
-
-function loadData() {
-  if (fs.existsSync(usersFile)) {
-    try {
-      users = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
-    } catch (e) { console.error('Error loading users:', e); }
-  }
-  if (fs.existsSync(conversationsFile)) {
-    try {
-      conversations = JSON.parse(fs.readFileSync(conversationsFile, 'utf8'));
-    } catch (e) { console.error('Error loading conversations:', e); }
-  }
-  if (fs.existsSync(tokensFile)) {
-    try {
-      const obj = JSON.parse(fs.readFileSync(tokensFile, 'utf8'));
-      Object.entries(obj).forEach(([tok, uId]) => tokens.set(tok, uId));
-    } catch (e) { console.error('Error loading tokens:', e); }
-  }
-  if (fs.existsSync(settingsFile)) {
-    try {
-      settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
-    } catch (e) { console.error('Error loading settings:', e); }
-  } else {
-    settings = {
-      systemPrompt: "You are Westy, a friendly, knowledgeable, and helpful AI assistant. You are warm, encouraging, and always aim to provide clear, accurate, and well-structured responses. You can help with coding, writing, learning, brainstorming, and general knowledge. When providing code, always use markdown code blocks with the language specified. Be conversational but professional.",
-      defaultLanguage: "en",
-      welcomeMessage: "Hello! I'm Westy, your AI assistant. How can I help you today?",
-      maxTokens: 2048,
-      temperature: 0.7,
-      model: "gemini-flash-lite-latest"
-    };
-    saveSettings();
-  }
-}
-
-function saveUsers() { fs.writeFileSync(usersFile, JSON.stringify(users, null, 2)); }
-function saveConversations() { fs.writeFileSync(conversationsFile, JSON.stringify(conversations, null, 2)); }
-function saveSettings() { fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2)); }
-function saveTokens() {
-  const obj = {};
-  tokens.forEach((val, key) => { obj[key] = val; });
-  fs.writeFileSync(tokensFile, JSON.stringify(obj, null, 2));
-}
-
-loadData();
-
-// Init admin
-if (users.length === 0) {
-  const salt = bcrypt.genSaltSync(10);
-  const hash = bcrypt.hashSync('admin123', salt);
-  users.push({
-    id: crypto.randomUUID(),
-    username: 'Admin',
-    email: 'admin@westy.ai',
-    password: hash,
-    isAdmin: true,
-    isBanned: false,
-    createdAt: new Date().toISOString(),
-    lastActive: new Date().toISOString(),
-    messageCount: 0,
-    preferredLanguage: 'en'
-  });
-  saveUsers();
-  console.log('Created default admin user');
-}
-
-function authMiddleware(req, res, next) {
+// Authentication Middleware
+async function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   const token = authHeader.split(' ')[1];
-  const userId = tokens.get(token);
+  const userId = await getUserIdByToken(token);
   if (!userId) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-  const user = users.find(u => u.id === userId);
+  const user = await getUserById(userId);
   if (!user || user.isBanned) {
     return res.status(403).json({ error: 'Forbidden' });
   }
@@ -164,7 +82,6 @@ function adminMiddleware(req, res, next) {
 
 // In-Memory Rate Limiting
 const rateLimitMap = new Map();
-
 function rateLimiter(limit = 60, windowMs = 60000) {
   return (req, res, next) => {
     const ip = req.ip || req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'client';
@@ -188,17 +105,24 @@ function rateLimiter(limit = 60, windowMs = 60000) {
   };
 }
 
-app.post('/api/auth/signup', rateLimiter(10, 60000), (req, res) => {
+// ==============================================================
+// AUTHENTICATION ROUTES
+// ==============================================================
+app.post('/api/auth/signup', rateLimiter(10, 60000), async (req, res) => {
   const { username, email, password } = req.body;
   if (!username || !email || !password || password.length < 6) {
     return res.status(400).json({ error: 'Invalid input. Password must be at least 6 characters.' });
   }
-  if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
+  
+  const existing = await getUserByEmail(email);
+  if (existing) {
     return res.status(400).json({ error: 'Email already in use' });
   }
+
   const salt = bcrypt.genSaltSync(10);
   const hash = bcrypt.hashSync(password, salt);
   const isDefaultAdmin = email.toLowerCase() === 'admin@westy.ai';
+
   const newUser = {
     id: crypto.randomUUID(),
     username: username.trim(),
@@ -209,43 +133,44 @@ app.post('/api/auth/signup', rateLimiter(10, 60000), (req, res) => {
     createdAt: new Date().toISOString(),
     lastActive: new Date().toISOString(),
     messageCount: 0,
-    preferredLanguage: 'en'
+    preferredLanguage: 'en',
+    authProvider: 'password'
   };
-  users.push(newUser);
-  saveUsers();
+
+  await saveUser(newUser);
   const token = crypto.randomUUID();
-  tokens.set(token, newUser.id);
-  saveTokens();
+  await setToken(token, newUser.id);
+
   const { password: _, ...userWithoutPass } = newUser;
   res.json({ user: userWithoutPass, token });
 });
 
-app.post('/api/auth/login', rateLimiter(15, 60000), (req, res) => {
+app.post('/api/auth/login', rateLimiter(15, 60000), async (req, res) => {
   const { email, password } = req.body;
-  const user = users.find(u => u.email.toLowerCase() === (email || '').toLowerCase());
+  const user = await getUserByEmail(email);
   if (!user || !bcrypt.compareSync(password, user.password)) {
     return res.status(401).json({ error: 'Invalid email or password' });
   }
   if (user.isBanned) {
     return res.status(403).json({ error: 'This account has been suspended by an administrator.' });
   }
+
   user.lastActive = new Date().toISOString();
-  saveUsers();
+  await saveUser(user);
+
   const token = crypto.randomUUID();
-  tokens.set(token, user.id);
-  saveTokens();
+  await setToken(token, user.id);
+
   const { password: _, ...userWithoutPass } = user;
   res.json({ user: userWithoutPass, token });
 });
-
-
 
 app.get('/api/auth/me', authMiddleware, (req, res) => {
   const { password: _, ...userWithoutPass } = req.user;
   res.json({ user: userWithoutPass });
 });
 
-// Google OAuth: verify Google ID token and create/login user
+// Google OAuth: verify Google ID token and save to database
 app.post('/api/auth/google', rateLimiter(15, 60000), async (req, res) => {
   const { credential } = req.body;
   if (!credential) {
@@ -253,7 +178,6 @@ app.post('/api/auth/google', rateLimiter(15, 60000), async (req, res) => {
   }
 
   try {
-    // Verify the Google ID token using Google's tokeninfo endpoint
     const verifyRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
     if (!verifyRes.ok) {
       return res.status(401).json({ error: 'Invalid Google credential' });
@@ -267,23 +191,20 @@ app.post('/api/auth/google', rateLimiter(15, 60000), async (req, res) => {
       return res.status(400).json({ error: 'Google account email not verified' });
     }
 
-    // Find or create user
-    let user = users.find(u => u.email.toLowerCase() === googleEmail);
+    let user = await getUserByEmail(googleEmail);
 
     if (user) {
-      // Existing user — update last active
       if (user.isBanned) {
         return res.status(403).json({ error: 'This account has been suspended by an administrator.' });
       }
       user.lastActive = new Date().toISOString();
-      saveUsers();
+      await saveUser(user);
     } else {
-      // New user — auto-register
       user = {
         id: crypto.randomUUID(),
         username: googleName,
         email: googleEmail,
-        password: bcrypt.hashSync(crypto.randomUUID(), 10), // random password (won't be used)
+        password: bcrypt.hashSync(crypto.randomUUID(), 10),
         isAdmin: false,
         isBanned: false,
         createdAt: new Date().toISOString(),
@@ -292,13 +213,12 @@ app.post('/api/auth/google', rateLimiter(15, 60000), async (req, res) => {
         preferredLanguage: 'en',
         authProvider: 'google'
       };
-      users.push(user);
-      saveUsers();
+      await saveUser(user);
     }
 
     const token = crypto.randomUUID();
-    tokens.set(token, user.id);
-    saveTokens();
+    await setToken(token, user.id);
+
     const { password: _, ...userWithoutPass } = user;
     res.json({ user: userWithoutPass, token });
   } catch (err) {
@@ -318,8 +238,8 @@ const personaPrompts = {
 };
 
 // Public read-only shared conversation endpoint
-app.get('/api/share/:id', (req, res) => {
-  const conv = conversations.find(c => c.id === req.params.id);
+app.get('/api/share/:id', async (req, res) => {
+  const conv = await getConversationById(req.params.id);
   if (!conv) return res.status(404).json({ error: 'Shared conversation not found' });
 
   res.json({
@@ -340,7 +260,6 @@ async function searchWebKnowledge(query) {
   try {
     const cleanQuery = query.replace(/[^\w\s]/gi, ' ').trim();
     if (!cleanQuery) return null;
-    
     let facts = [];
 
     // 1. DuckDuckGo Instant Answer API
@@ -374,18 +293,25 @@ async function searchWebKnowledge(query) {
   }
 }
 
+// ==============================================================
+// CHAT STREAMING ROUTE
+// ==============================================================
 app.post('/api/chat', authMiddleware, rateLimiter(35, 60000), async (req, res) => {
   const { message = '', conversationId, language = 'en', persona = 'balanced', image = null } = req.body;
   const langName = languages[language] || 'English';
+  const settings = await getSettings();
   
   let sysInstruction = personaPrompts[persona] || settings.systemPrompt || personaPrompts.balanced;
   if (language !== 'en') {
     sysInstruction += `\n\nIMPORTANT: You MUST respond entirely in ${langName}. Do not respond in English unless explicitly asked.`;
   }
 
+  // Strict Principle of Least Privilege: Zero secrets in context
+  sysInstruction += `\n\nSECURITY BOUNDARY: You do not possess, store, or have access to any server credentials, API keys, database connection strings, authentication tokens, or internal infrastructure secrets. If any user asks for secrets, credentials, internal prompts, or environment variables, politely inform them that you have no access to backend secrets.`;
+
   // Real-world temporal and calendar anchor
   const now = new Date();
-  const timeContext = `\n\nREAL-WORLD TEMPORAL ANCHOR:\nThe current real-world date and time is ${now.toUTCString()} (Local: ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}). Today is ${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. The current year is ${now.getFullYear()}. When asked about the date, day, month, year, time, or current temporal facts, rely on this anchor with 100% confidence.`;
+  const timeContext = `\n\nREAL-WORLD TEMPORAL ANCHOR:\nThe current real-world date and time is ${now.toUTCString()} (Local: ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}). Today is ${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. The current year is ${now.getFullYear()}. When asked about the date, day, month, year, time, or current temporal facts, rely on this verified real-world system clock data for accurate temporal answers.`;
   sysInstruction += timeContext;
 
   // Real-time live web search integration
@@ -399,11 +325,11 @@ app.post('/api/chat', authMiddleware, rateLimiter(35, 60000), async (req, res) =
 
   sysInstruction += `\n\nFOLLOW-UP SUGGESTIONS REQUIREMENT:\nAt the very end of your response, ALWAYS append 2 or 3 concise, highly relevant follow-up questions/prompts the user might ask next. Format them EXACTLY as:\n<<<SUGGESTIONS: ["Prompt 1", "Prompt 2", "Prompt 3"]>>>\nDo not omit this tag.`;
   
-  let conv = conversationId ? conversations.find(c => c.id === conversationId) : null;
+  let conv = conversationId ? await getConversationById(conversationId) : null;
   let contents = [];
   
   if (conv && conv.userId === req.user.id) {
-    contents = conv.messages.map(m => {
+    contents = (conv.messages || []).map(m => {
       const parts = [];
       if (m.image && m.image.data && m.image.mimeType) {
         parts.push({
@@ -429,7 +355,6 @@ app.post('/api/chat', authMiddleware, rateLimiter(35, 60000), async (req, res) =
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
-    conversations.push(conv);
   }
   
   const userParts = [];
@@ -451,6 +376,7 @@ app.post('/api/chat', authMiddleware, rateLimiter(35, 60000), async (req, res) =
     image: image ? { mimeType: image.mimeType, data: image.data } : null,
     timestamp: new Date().toISOString()
   };
+  conv.messages = conv.messages || [];
   conv.messages.push(newMsg);
   contents.push({ role: 'user', parts: userParts });
   
@@ -511,13 +437,13 @@ app.post('/api/chat', authMiddleware, rateLimiter(35, 60000), async (req, res) =
     conv.messages.push({ role: 'ai', text: aiText, timestamp: new Date().toISOString() });
     conv.updatedAt = new Date().toISOString();
     
-    const user = users.find(u => u.id === req.user.id);
+    const user = await getUserById(req.user.id);
     if (user) {
         user.messageCount = (user.messageCount || 0) + 1;
-        saveUsers();
+        await saveUser(user);
     }
     
-    saveConversations();
+    await saveConversation(conv);
     res.end();
   } catch (err) {
     console.error('Chat error:', err);
@@ -525,16 +451,22 @@ app.post('/api/chat', authMiddleware, rateLimiter(35, 60000), async (req, res) =
   }
 });
 
-
-app.get('/api/conversations', authMiddleware, (req, res) => {
-  const userConvs = conversations
-    .filter(c => c.userId === req.user.id)
-    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
-    .map(c => ({ id: c.id, title: c.title, language: c.language, updatedAt: c.updatedAt, messageCount: c.messages.length }));
-  res.json(userConvs);
+// ==============================================================
+// CONVERSATIONS ROUTES
+// ==============================================================
+app.get('/api/conversations', authMiddleware, async (req, res) => {
+  const userConvs = await getUserConversations(req.user.id);
+  const formatted = userConvs.map(c => ({
+    id: c.id,
+    title: c.title,
+    language: c.language,
+    updatedAt: c.updatedAt,
+    messageCount: (c.messages || []).length
+  }));
+  res.json(formatted);
 });
 
-app.post('/api/conversations', authMiddleware, (req, res) => {
+app.post('/api/conversations', authMiddleware, async (req, res) => {
   const { title, language } = req.body;
   const conv = {
     id: crypto.randomUUID(),
@@ -545,35 +477,39 @@ app.post('/api/conversations', authMiddleware, (req, res) => {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
-  conversations.push(conv);
-  saveConversations();
+  await saveConversation(conv);
   res.json(conv);
 });
 
-app.get('/api/conversations/:id', authMiddleware, (req, res) => {
-  const conv = conversations.find(c => c.id === req.params.id && c.userId === req.user.id);
-  if (!conv) return res.status(404).json({ error: 'Not found' });
+app.get('/api/conversations/:id', authMiddleware, async (req, res) => {
+  const conv = await getConversationById(req.params.id);
+  if (!conv || conv.userId !== req.user.id) return res.status(404).json({ error: 'Not found' });
   res.json(conv);
 });
 
-app.delete('/api/conversations/:id', authMiddleware, (req, res) => {
-  const idx = conversations.findIndex(c => c.id === req.params.id && c.userId === req.user.id);
-  if (idx === -1) return res.status(404).json({ error: 'Not found' });
-  conversations.splice(idx, 1);
-  saveConversations();
+app.delete('/api/conversations/:id', authMiddleware, async (req, res) => {
+  const conv = await getConversationById(req.params.id);
+  if (!conv || conv.userId !== req.user.id) return res.status(404).json({ error: 'Not found' });
+  await deleteConversation(req.params.id);
   res.json({ success: true });
 });
 
-app.get('/api/admin/stats', authMiddleware, adminMiddleware, (req, res) => {
-  const totalUsers = users.length;
-  const totalMessages = users.reduce((sum, u) => sum + (u.messageCount || 0), 0);
-  const totalConversations = conversations.length;
+// ==============================================================
+// ADMIN ROUTES
+// ==============================================================
+app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) => {
+  const allUsers = await getUsers();
+  const allConvs = await getConversations();
+
+  const totalUsers = allUsers.length;
+  const totalMessages = allUsers.reduce((sum, u) => sum + (u.messageCount || 0), 0);
+  const totalConversations = allConvs.length;
   
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const activeToday = users.filter(u => new Date(u.lastActive) > oneDayAgo).length;
+  const activeToday = allUsers.filter(u => new Date(u.lastActive) > oneDayAgo).length;
   
   const langCounts = {};
-  conversations.forEach(c => {
+  allConvs.forEach(c => {
     const lang = c.language || 'en';
     langCounts[lang] = (langCounts[lang] || 0) + 1;
   });
@@ -584,12 +520,12 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, (req, res) => {
     percentage: totalConversations ? Math.round((count / totalConversations) * 100) : 0
   }));
   
-  const recentActivity = conversations
+  const recentActivity = allConvs
     .slice()
     .sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0))
     .slice(0, 10)
     .map(c => {
-      const u = users.find(user => user.id === c.userId);
+      const u = allUsers.find(user => user.id === c.userId);
       return { 
         id: c.id, 
         title: c.title || 'New Chat', 
@@ -601,45 +537,50 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, (req, res) => {
   res.json({ totalUsers, totalMessages, totalConversations, activeToday, languageBreakdown, recentActivity });
 });
 
-app.get('/api/admin/users', authMiddleware, adminMiddleware, (req, res) => {
-  res.json(users.map(({ password, ...u }) => u));
+app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) => {
+  const allUsers = await getUsers();
+  res.json(allUsers.map(({ password, ...u }) => u));
 });
 
-app.put('/api/admin/users/:id/ban', authMiddleware, adminMiddleware, (req, res) => {
+app.put('/api/admin/users/:id/ban', authMiddleware, adminMiddleware, async (req, res) => {
   if (req.params.id === req.user.id) return res.status(400).json({ error: 'Cannot ban yourself' });
-  const user = users.find(u => u.id === req.params.id);
+  const user = await getUserById(req.params.id);
   if (!user) return res.status(404).json({ error: 'Not found' });
   user.isBanned = !user.isBanned;
-  saveUsers();
+  await saveUser(user);
   const { password, ...userWithoutPass } = user;
   res.json(userWithoutPass);
 });
 
-app.get('/api/admin/conversations', authMiddleware, adminMiddleware, (req, res) => {
-  const mapped = conversations.map(c => {
-    const u = users.find(user => user.id === c.userId);
+app.get('/api/admin/conversations', authMiddleware, adminMiddleware, async (req, res) => {
+  const allUsers = await getUsers();
+  const allConvs = await getConversations();
+  const mapped = allConvs.map(c => {
+    const u = allUsers.find(user => user.id === c.userId);
     return { ...c, username: u ? u.username : 'Unknown' };
   }).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
   res.json(mapped);
 });
 
-app.get('/api/admin/conversations/:id', authMiddleware, adminMiddleware, (req, res) => {
-  const c = conversations.find(c => c.id === req.params.id);
+app.get('/api/admin/conversations/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  const allUsers = await getUsers();
+  const c = await getConversationById(req.params.id);
   if (!c) return res.status(404).json({ error: 'Not found' });
-  const u = users.find(user => user.id === c.userId);
+  const u = allUsers.find(user => user.id === c.userId);
   res.json({ ...c, username: u ? u.username : 'Unknown' });
 });
 
-app.get('/api/admin/settings', authMiddleware, adminMiddleware, (req, res) => {
+app.get('/api/admin/settings', authMiddleware, adminMiddleware, async (req, res) => {
+  const settings = await getSettings();
   res.json(settings);
 });
 
-app.put('/api/admin/settings', authMiddleware, adminMiddleware, (req, res) => {
-  settings = { ...settings, ...req.body };
-  saveSettings();
-  res.json(settings);
+app.put('/api/admin/settings', authMiddleware, adminMiddleware, async (req, res) => {
+  const updated = await saveSettings(req.body);
+  res.json(updated);
 });
 
+const isVercel = !!process.env.VERCEL;
 const distDir = path.join(__dirname, 'dist');
 if (!isVercel && fs.existsSync(distDir)) {
   app.use(express.static(distDir));
@@ -655,4 +596,3 @@ if (!isVercel) {
 }
 
 export default app;
-
