@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename);
 
 let firestore = null;
 let firebaseInitError = null;
+let matchedKeyName = null;
 
 // Initialize Firebase Admin
 try {
@@ -16,7 +17,6 @@ try {
   const keyPath = path.join(__dirname, 'firebase-key.json');
 
   // Check multiple possible env var names for the service account
-  let matchedKeyName = null;
   let rawKey = process.env.FIREBASE_SERVICE_ACCOUNT
     || process.env.FIREBASE_KEY
     || process.env.FIREBASE_CONFIG
