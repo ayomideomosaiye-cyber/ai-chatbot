@@ -16,6 +16,7 @@ try {
   const keyPath = path.join(__dirname, 'firebase-key.json');
 
   // Check multiple possible env var names for the service account
+  let matchedKeyName = null;
   let rawKey = process.env.FIREBASE_SERVICE_ACCOUNT
     || process.env.FIREBASE_KEY
     || process.env.FIREBASE_CONFIG
@@ -23,6 +24,19 @@ try {
     || process.env.FIREBASE_SERVICE_KEY
     || process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON
     || process.env.GOOGLE_APPLICATION_CREDENTIALS;
+
+  if (rawKey) {
+    matchedKeyName = 'explicit_env_var';
+  } else {
+    // Scan all env vars for any key containing service account JSON
+    for (const [k, v] of Object.entries(process.env)) {
+      if (typeof v === 'string' && (v.includes('private_key') || (v.includes('service_account') && v.includes('{')))) {
+        rawKey = v;
+        matchedKeyName = k;
+        break;
+      }
+    }
+  }
 
   if (rawKey) {
     try {
@@ -371,4 +385,4 @@ export async function saveSettings(newSettings) {
   return merged;
 }
 
-export { firestore, firebaseInitError };
+export { firestore, firebaseInitError, matchedKeyName };

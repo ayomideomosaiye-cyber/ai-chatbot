@@ -21,7 +21,8 @@ import {
   getSettings,
   saveSettings,
   firestore,
-  firebaseInitError
+  firebaseInitError,
+  matchedKeyName
 } from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -60,12 +61,15 @@ app.use((req, res, next) => {
 app.get('/api/status', async (req, res) => {
   const users = await getUsers();
   const allEnvKeys = Object.keys(process.env).sort();
-  const firebaseKeys = allEnvKeys.filter(k => k.toUpperCase().includes('FIREBASE') || k.toUpperCase().includes('GOOGLE'));
+  const firebaseKeys = allEnvKeys.filter(k => k.toUpperCase().includes('FIREBASE') || k.toUpperCase().includes('GOOGLE') || k.toUpperCase().includes('ACCOUNT'));
   res.json({
+    deployTime: new Date().toISOString(),
+    vercelEnv: process.env.VERCEL_ENV || 'local',
     firestoreConnected: !!firestore,
-    hasEnvVar: !!process.env.FIREBASE_SERVICE_ACCOUNT,
-    envVarLength: process.env.FIREBASE_SERVICE_ACCOUNT ? process.env.FIREBASE_SERVICE_ACCOUNT.length : 0,
+    matchedKeyName: matchedKeyName,
+    hasEnvVar: !!(process.env.FIREBASE_SERVICE_ACCOUNT || matchedKeyName),
     firebaseKeysFound: firebaseKeys,
+    allEnvKeyNames: allEnvKeys,
     initError: firebaseInitError,
     usersCount: users.length,
     users: users.map(u => ({ username: u.username, email: u.email }))
