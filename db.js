@@ -52,13 +52,27 @@ try {
       }
 
       // Strip outer enclosing quotes if added by shell or UI
+function formatPemKey(raw) {
+  if (!raw) return raw;
+  let text = String(raw);
+  text = text.replace(/-----BEGIN[ A-Z0-9_-]+-----/gi, '');
+  text = text.replace(/-----END[ A-Z0-9_-]+-----/gi, '');
+  text = text.replace(/\\n/g, '');
+  text = text.replace(/\\r/g, '');
+  text = text.replace(/\\/g, '');
+  text = text.replace(/\s+/g, '');
+  text = text.replace(/['"]+/g, '');
+  const chunks = text.match(/.{1,64}/g) || [];
+  return '-----BEGIN PRIVATE KEY-----\n' + chunks.join('\n') + '\n-----END PRIVATE KEY-----\n';
+}
+
       if ((rawKey.startsWith("'") && rawKey.endsWith("'")) || 
           (rawKey.startsWith('"') && rawKey.endsWith('"') && rawKey.includes('\\"'))) {
         rawKey = rawKey.slice(1, -1);
       }
       const parsed = JSON.parse(rawKey);
       if (parsed.private_key) {
-        parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
+        parsed.private_key = formatPemKey(parsed.private_key);
       }
       credential = cert(parsed);
     } catch (e) {
@@ -67,7 +81,7 @@ try {
     }
   } else if (process.env.FIREBASE_PRIVATE_KEY && (process.env.FIREBASE_CLIENT_EMAIL || process.env.FIREBASE_PROJECT_ID)) {
     try {
-      const privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
+      const privateKey = formatPemKey(process.env.FIREBASE_PRIVATE_KEY);
       credential = cert({
         projectId: process.env.FIREBASE_PROJECT_ID || 'westy-ai',
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL || 'firebase-adminsdk-fbsvc@westy-ai.iam.gserviceaccount.com',
