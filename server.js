@@ -66,12 +66,8 @@ app.get('/api/status', async (req, res) => {
     deployTime: new Date().toISOString(),
     vercelEnv: process.env.VERCEL_ENV || 'local',
     vercelProjectName: process.env.VERCEL_PROJECT_NAME || 'unknown',
-    vercelGitCommitSha: process.env.VERCEL_GIT_COMMIT_SHA || 'unknown',
     firestoreConnected: !!firestore,
-    matchedKeyName: matchedKeyName,
     hasEnvVar: !!(process.env.FIREBASE_SERVICE_ACCOUNT || matchedKeyName),
-    firebaseKeysFound: firebaseKeys,
-    allEnvKeyNames: allEnvKeys,
     initError: firebaseInitError,
     usersCount: users.length,
     users: users.map(u => ({ username: u.username, email: u.email }))
