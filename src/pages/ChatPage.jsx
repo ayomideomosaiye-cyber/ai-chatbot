@@ -376,6 +376,19 @@ export default function ChatPage() {
           </div>
 
           <div className="chat-header-actions">
+            {/* Quick New Chat Button */}
+            <button 
+              className="chat-header-btn new-chat-header-btn" 
+              onClick={newChat} 
+              title="Start a new chat"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              <span className="hide-on-mobile">New</span>
+            </button>
+
             {/* Persona Switcher Dropdown */}
             <PersonaSelector currentPersonaId={persona} onChange={handlePersonaChange} />
 
@@ -425,9 +438,9 @@ export default function ChatPage() {
               )}
             </button>
 
-            {/* Motion Cursor Toggle Button */}
+            {/* Motion Cursor Toggle Button (desktop only) */}
             <button 
-              className={`chat-header-btn ${cursorOn ? 'active' : ''}`}
+              className={`chat-header-btn hide-on-mobile ${cursorOn ? 'active' : ''}`}
               onClick={handleCursorToggle}
               title={cursorOn ? 'Motion Cursor: ON (Click to disable)' : 'Motion Cursor: OFF (Click to enable)'}
             >

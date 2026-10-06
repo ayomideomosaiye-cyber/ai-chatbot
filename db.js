@@ -15,10 +15,29 @@ try {
   let credential = null;
   const keyPath = path.join(__dirname, 'firebase-key.json');
 
-  let rawKey = process.env.FIREBASE_SERVICE_ACCOUNT;
+  // Check multiple possible env var names for the service account
+  let rawKey = process.env.FIREBASE_SERVICE_ACCOUNT
+    || process.env.FIREBASE_KEY
+    || process.env.FIREBASE_CONFIG
+    || process.env.FIREBASE_CREDENTIALS
+    || process.env.FIREBASE_SERVICE_KEY
+    || process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON
+    || process.env.GOOGLE_APPLICATION_CREDENTIALS;
+
   if (rawKey) {
     try {
       rawKey = rawKey.trim();
+      // Handle base64 encoded JSON
+      if (!rawKey.startsWith('{') && !rawKey.startsWith("'") && !rawKey.startsWith('"')) {
+        try {
+          const decoded = Buffer.from(rawKey, 'base64').toString('utf8');
+          if (decoded.includes('{') && decoded.includes('private_key')) {
+            rawKey = decoded.trim();
+          }
+        } catch (e) {}
+      }
+
+      // Strip outer enclosing quotes if added by shell or UI
       if ((rawKey.startsWith("'") && rawKey.endsWith("'")) || 
           (rawKey.startsWith('"') && rawKey.endsWith('"') && rawKey.includes('\\"'))) {
         rawKey = rawKey.slice(1, -1);
@@ -29,7 +48,19 @@ try {
       }
       credential = cert(parsed);
     } catch (e) {
-      firebaseInitError = `Failed to parse FIREBASE_SERVICE_ACCOUNT: ${e.message}`;
+      firebaseInitError = `Failed to parse Firebase credentials: ${e.message}`;
+      console.error(firebaseInitError);
+    }
+  } else if (process.env.FIREBASE_PRIVATE_KEY && (process.env.FIREBASE_CLIENT_EMAIL || process.env.FIREBASE_PROJECT_ID)) {
+    try {
+      const privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
+      credential = cert({
+        projectId: process.env.FIREBASE_PROJECT_ID || 'westy-ai',
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL || 'firebase-adminsdk-fbsvc@westy-ai.iam.gserviceaccount.com',
+        privateKey
+      });
+    } catch (e) {
+      firebaseInitError = `Failed to build credential from individual env vars: ${e.message}`;
       console.error(firebaseInitError);
     }
   } else if (fs.existsSync(keyPath)) {

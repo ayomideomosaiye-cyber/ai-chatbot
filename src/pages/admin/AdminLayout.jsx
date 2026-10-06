@@ -25,7 +25,37 @@ export default function AdminLayout() {
 
   return (
     <div className="admin-layout">
-      <nav className="admin-sidebar">
+      {/* Mobile Top Navigation for Admin */}
+      <header className="admin-mobile-header show-on-mobile glass">
+        <div className="admin-mobile-header-top">
+          <Link to="/chat" className="admin-mobile-brand">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none">
+              <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" />
+            </svg>
+            <span className="gradient-text">Westy Admin</span>
+          </Link>
+          <Link to="/chat" className="admin-mobile-back-btn">
+            ← Chat
+          </Link>
+        </div>
+        <nav className="admin-mobile-tabs">
+          <NavLink to="/admin" end className={({ isActive }) => `admin-mobile-tab ${isActive ? 'active' : ''}`}>
+            Dashboard
+          </NavLink>
+          <NavLink to="/admin/users" className={({ isActive }) => `admin-mobile-tab ${isActive ? 'active' : ''}`}>
+            Users
+          </NavLink>
+          <NavLink to="/admin/conversations" className={({ isActive }) => `admin-mobile-tab ${isActive ? 'active' : ''}`}>
+            Chats
+          </NavLink>
+          <NavLink to="/admin/settings" className={({ isActive }) => `admin-mobile-tab ${isActive ? 'active' : ''}`}>
+            Settings
+          </NavLink>
+        </nav>
+      </header>
+
+      {/* Desktop Sidebar */}
+      <nav className="admin-sidebar hide-on-mobile">
         <div className="admin-logo">
           <Link to="/chat">
             <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none">

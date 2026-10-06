@@ -137,9 +137,9 @@ export default function LandingPage() {
           </nav>
 
           <div className="landing-nav-actions">
-            {/* Custom Interactive Motion Cursor Switch */}
+            {/* Custom Interactive Motion Cursor Switch (desktop only) */}
             <button 
-              className={`cursor-toggle-pill glass ${cursorOn ? 'active' : ''}`} 
+              className={`cursor-toggle-pill glass hide-on-mobile ${cursorOn ? 'active' : ''}`} 
               onClick={handleCursorToggle}
               title={cursorOn ? 'Interactive Motion Cursor: ON (Click to toggle)' : 'Interactive Motion Cursor: OFF (Click to toggle)'}
             >

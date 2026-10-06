@@ -59,10 +59,13 @@ app.use((req, res, next) => {
 // Diagnostic endpoint to check Firebase Firestore status
 app.get('/api/status', async (req, res) => {
   const users = await getUsers();
+  const allEnvKeys = Object.keys(process.env).sort();
+  const firebaseKeys = allEnvKeys.filter(k => k.toUpperCase().includes('FIREBASE') || k.toUpperCase().includes('GOOGLE'));
   res.json({
     firestoreConnected: !!firestore,
     hasEnvVar: !!process.env.FIREBASE_SERVICE_ACCOUNT,
     envVarLength: process.env.FIREBASE_SERVICE_ACCOUNT ? process.env.FIREBASE_SERVICE_ACCOUNT.length : 0,
+    firebaseKeysFound: firebaseKeys,
     initError: firebaseInitError,
     usersCount: users.length,
     users: users.map(u => ({ username: u.username, email: u.email }))
