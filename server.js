@@ -65,6 +65,8 @@ app.get('/api/status', async (req, res) => {
   res.json({
     deployTime: new Date().toISOString(),
     vercelEnv: process.env.VERCEL_ENV || 'local',
+    vercelProjectName: process.env.VERCEL_PROJECT_NAME || 'unknown',
+    vercelGitCommitSha: process.env.VERCEL_GIT_COMMIT_SHA || 'unknown',
     firestoreConnected: !!firestore,
     matchedKeyName: matchedKeyName,
     hasEnvVar: !!(process.env.FIREBASE_SERVICE_ACCOUNT || matchedKeyName),
