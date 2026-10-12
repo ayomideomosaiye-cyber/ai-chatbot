@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { languages } from '../utils/languages';
+import FlagBadge from './FlagBadge';
 
 export default function LanguageSelector({ value, onChange }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,17 +16,16 @@ export default function LanguageSelector({ value, onChange }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Find the selected language object
-  const currentLang = languages?.find(l => l.code === value) || { code: 'en', name: 'English', flag: '🇺🇸' };
+  const currentLang = languages?.find(l => l.code === value) || { code: 'en', name: 'English' };
 
   return (
     <div className="lang-selector" ref={dropdownRef}>
-      <button className="lang-current glass" onClick={() => setIsOpen(!isOpen)}>
-        <span>{currentLang.flag}</span>
+      <button className="lang-current glass" onClick={() => setIsOpen(!isOpen)} title="Select Language">
+        <FlagBadge code={currentLang.code} size={16} />
         <span>{currentLang.name}</span>
         <svg 
-          width="16" 
-          height="16" 
+          width="14" 
+          height="14" 
           viewBox="0 0 24 24" 
           fill="none" 
           stroke="currentColor" 
@@ -47,7 +47,7 @@ export default function LanguageSelector({ value, onChange }) {
                 setIsOpen(false);
               }}
             >
-              <span className="lang-flag">{lang.flag}</span>
+              <FlagBadge code={lang.code} size={16} />
               <span>{lang.name}</span>
             </button>
           ))}

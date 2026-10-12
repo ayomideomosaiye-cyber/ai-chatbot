@@ -189,7 +189,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="hero-subtitle portal-subtitle">
-            An intelligent AI companion that speaks your language — <strong>Yoruba</strong>, <strong>Igbo</strong>, <strong>Hausa</strong>, <strong>Pidgin</strong>, English, and Code. Real-time reasoning, custom prompts, and pure clarity.
+            Next-generation conversational AI built for technical depth and multilingual fluency. Real-time reasoning, multimodal vision, clean code architecture, and conversational clarity.
           </p>
 
           <div className="hero-cta-group">
@@ -207,7 +207,7 @@ export default function LandingPage() {
             </a>
           </div>
 
-          {/* Floating Remixed Prompt Input Bar */}
+          {/* Floating Prompt Input Bar */}
           <form onSubmit={handleCustomSubmit} className="hero-prompt-bar glass-strong prompt-bar-animated portal-prompt-bar">
             <div className="prompt-input-row">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="prompt-star-icon">
@@ -228,42 +228,42 @@ export default function LandingPage() {
               </button>
             </div>
 
-            {/* Mode Tabs (From Verseo Remix) */}
+            {/* Mode Tabs */}
             <div className="hero-mode-tabs">
+              <button 
+                type="button" 
+                className={`mode-tab-btn ${activeMode === 'code' ? 'active' : ''}`}
+                onClick={() => { playTick(); setActiveMode('code'); }}
+              >
+                Code Architect
+              </button>
               <button 
                 type="button" 
                 className={`mode-tab-btn ${activeMode === 'yoruba' ? 'active' : ''}`}
                 onClick={() => { playTick(); setActiveMode('yoruba'); }}
               >
-                🇳🇬 Yoruba Mode
+                Yorùbá
               </button>
               <button 
                 type="button" 
                 className={`mode-tab-btn ${activeMode === 'igbo' ? 'active' : ''}`}
                 onClick={() => { playTick(); setActiveMode('igbo'); }}
               >
-                🇳🇬 Igbo Mode
+                Igbo
               </button>
               <button 
                 type="button" 
                 className={`mode-tab-btn ${activeMode === 'hausa' ? 'active' : ''}`}
                 onClick={() => { playTick(); setActiveMode('hausa'); }}
               >
-                🇳🇬 Hausa Mode
+                Hausa
               </button>
               <button 
                 type="button" 
                 className={`mode-tab-btn ${activeMode === 'pidgin' ? 'active' : ''}`}
                 onClick={() => { playTick(); setActiveMode('pidgin'); }}
               >
-                ✨ Naija Pidgin
-              </button>
-              <button 
-                type="button" 
-                className={`mode-tab-btn ${activeMode === 'code' ? 'active' : ''}`}
-                onClick={() => { playTick(); setActiveMode('code'); }}
-              >
-                💻 Code Architect
+                Naija Pidgin
               </button>
             </div>
           </form>
@@ -320,7 +320,13 @@ export default function LandingPage() {
 
               {/* User Bubble */}
               <div className="interactive-bubble user-bubble animate-fadeIn">
-                <span className="bubble-speaker">👤 User Query</span>
+                <span className="bubble-speaker">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  User Query
+                </span>
                 <p className="bubble-text">{modeData[activeMode].userQuery}</p>
               </div>
 
@@ -330,7 +336,7 @@ export default function LandingPage() {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                     <path d="M12 2L14 8L20 10L14 12L12 18L10 12L4 10L10 8L12 2Z" fill="var(--accent)" />
                   </svg>
-                  <span>Westy AI Response</span>
+                  <span>Westy Response</span>
                   <span className="stream-badge">Streaming SSE</span>
                 </div>
                 <p className="bubble-text">{modeData[activeMode].aiResponse}</p>
@@ -341,7 +347,11 @@ export default function LandingPage() {
                   className="quick-action-pill"
                   onClick={() => handleLaunchWithPrompt(modeData[activeMode].userQuery)}
                 >
-                  ⚡ Send this prompt to Westy
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                  </svg>
+                  <span>Execute Prompt</span>
                 </button>
               </div>
             </div>

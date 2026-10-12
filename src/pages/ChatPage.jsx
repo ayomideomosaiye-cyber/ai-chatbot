@@ -124,7 +124,8 @@ export default function ChatPage() {
     playTick();
     setPersona(newPersonaId);
     localStorage.setItem('westy_persona', newPersonaId);
-    setToastMessage(`Switched vibe to ${newPersonaId.replace(/_/g, ' ')}`);
+    const pName = newPersonaId.replace(/_/g, ' ');
+    setToastMessage(`Persona set to ${pName}`);
     setTimeout(() => setToastMessage(null), 2500);
   };
 
@@ -307,16 +308,6 @@ export default function ChatPage() {
     }
   };
 
-  const quickModes = [
-    { label: 'Universal', code: 'en', icon: '💬' },
-    { label: 'Yorùbá', code: 'yo', icon: '🇳🇬' },
-    { label: 'Igbo', code: 'ig', icon: '🇳🇬' },
-    { label: 'Hausa', code: 'ha', icon: '🇳🇬' },
-    { label: 'Pidgin', code: 'pcm', icon: '✨' },
-    { label: 'Chinese', code: 'zh', icon: '🇨🇳' },
-    { label: 'Français', code: 'fr', icon: '🇫🇷' },
-  ];
-
   return (
     <div className="chat-layout">
       {/* Toast Notification */}
@@ -468,28 +459,6 @@ export default function ChatPage() {
             {/* Language Dropdown */}
             <LanguageSelector value={language} onChange={handleLanguageChange} />
           </div>
-        </div>
-
-        {/* Quick Dialect Selector Bar */}
-        <div className="quick-dialects-bar">
-          <span className="dialects-label">Dialect:</span>
-          <div className="dialects-scroll">
-            {quickModes.map((m) => (
-              <button
-                key={m.code}
-                className={`dialect-pill ${language === m.code ? 'active' : ''}`}
-                onClick={() => handleLanguageChange(m.code)}
-              >
-                <span>{m.icon}</span>
-                <span>{m.label}</span>
-              </button>
-            ))}
-          </div>
-          {lastResponseTime && (
-            <span className="response-time-pill" title="Time taken for last streaming response">
-              ⚡ {lastResponseTime}s
-            </span>
-          )}
         </div>
 
         {/* Messages Feed */}
