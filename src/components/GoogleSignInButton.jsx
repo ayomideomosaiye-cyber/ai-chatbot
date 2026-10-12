@@ -37,11 +37,13 @@ export default function GoogleSignInButton() {
 
     if (btnRef.current) {
       window.google.accounts.id.renderButton(btnRef.current, {
+        type: 'standard',
         theme: 'filled_black',
         size: 'large',
-        width: btnRef.current.offsetWidth || 320,
-        text: 'continue_with',
+        width: Math.min(btnRef.current.offsetWidth || 320, 340),
+        text: 'signin_with',
         shape: 'pill',
+        logo_alignment: 'left',
       });
     }
   }

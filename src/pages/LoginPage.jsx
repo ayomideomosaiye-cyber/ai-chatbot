@@ -5,7 +5,8 @@ import GoogleSignInButton from '../components/GoogleSignInButton';
 
 export default function LoginPage() {
   const { user, login } = useAuth();
-  const [email, setEmail] = useState('');
+  const [rememberedEmail, setRememberedEmail] = useState(() => localStorage.getItem('westy_remembered_email') || '');
+  const [email, setEmail] = useState(() => localStorage.getItem('westy_remembered_email') || '');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -13,6 +14,12 @@ export default function LoginPage() {
   if (user) {
     return <Navigate to="/chat" replace />;
   }
+
+  const handleForgetEmail = () => {
+    localStorage.removeItem('westy_remembered_email');
+    setRememberedEmail('');
+    setEmail('');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,6 +58,20 @@ export default function LoginPage() {
         <h1 className="auth-title">Welcome back</h1>
         <p className="auth-subtitle">Sign in to continue your conversations</p>
         
+        {rememberedEmail && (
+          <div className="remembered-account-chip">
+            <span>Signed out from <strong>{rememberedEmail}</strong></span>
+            <button 
+              type="button" 
+              onClick={handleForgetEmail} 
+              className="chip-forget-btn" 
+              title="Forget this email on this device"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {error && <div className="auth-error">{error}</div>}
         
         <form className="auth-form" onSubmit={handleSubmit}>

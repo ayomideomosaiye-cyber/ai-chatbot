@@ -91,6 +91,9 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    if (user && user.email) {
+      localStorage.setItem('westy_remembered_email', user.email);
+    }
     localStorage.removeItem('westy_token');
     localStorage.removeItem('westy_user');
     setToken(null);
