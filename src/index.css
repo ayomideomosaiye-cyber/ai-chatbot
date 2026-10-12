@@ -4206,13 +4206,27 @@ a:hover { opacity: 0.85; }
    ============================================================= */
 .pxxl-roller-stage {
   display: inline-flex;
-  height: 1.45em;
   position: relative;
-  vertical-align: bottom;
+  vertical-align: middle;
   overflow: hidden;
   align-items: center;
   justify-content: center;
   perspective: 600px;
+  width: auto;
+  max-width: 100%;
+}
+
+.pxxl-roller-spacer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+  line-height: inherit;
 }
 
 .pxxl-roller-item {
@@ -4228,11 +4242,15 @@ a:hover { opacity: 0.85; }
   white-space: nowrap;
   backface-visibility: hidden;
   will-change: transform, opacity, filter;
+  width: max-content;
 }
 
 .pxxl-roller-icon {
   font-size: 1.15em;
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pxxl-roller-text {
@@ -4251,7 +4269,7 @@ a:hover { opacity: 0.85; }
   align-items: center;
   justify-content: center;
   margin-top: 10px;
-  padding: 6px 20px;
+  padding: 8px 24px;
   border-radius: 999px;
   background: rgba(8, 12, 24, 0.88);
   border: 1px solid rgba(0, 245, 212, 0.45);
@@ -4260,19 +4278,21 @@ a:hover { opacity: 0.85; }
   -webkit-backdrop-filter: blur(20px);
   max-width: calc(100vw - 32px);
   box-sizing: border-box;
+  transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .hero-roller-capsule .pxxl-roller-stage {
   min-width: 0;
   width: auto;
   max-width: 100%;
-  height: 1.3em;
+  height: 1.45em;
   padding: 0 6px;
 }
 
-.hero-roller-capsule .pxxl-roller-item {
-  font-size: clamp(16px, 2.6vw, 26px);
-  letter-spacing: -0.3px;
+.hero-roller-capsule .pxxl-roller-item,
+.hero-roller-capsule .pxxl-roller-spacer {
+  font-size: clamp(15px, 2.2vw, 22px);
+  letter-spacing: -0.2px;
   gap: 8px;
   white-space: nowrap;
 }
@@ -4521,12 +4541,13 @@ a:hover { opacity: 0.85; }
     height: 1.3em !important;
     padding: 0 4px !important;
   }
-  .hero-roller-capsule .pxxl-roller-item {
-    font-size: 14px !important;
+  .hero-roller-capsule .pxxl-roller-item,
+  .hero-roller-capsule .pxxl-roller-spacer {
+    font-size: 13.5px !important;
     gap: 6px !important;
   }
   .hero-roller-capsule .pxxl-roller-icon {
-    font-size: 14px !important;
+    font-size: 13.5px !important;
   }
   .portal-subtitle {
     font-size: 13.5px !important;
@@ -4818,8 +4839,9 @@ a:hover { opacity: 0.85; }
   .portal-title {
     font-size: 24px !important;
   }
-  .hero-roller-capsule .pxxl-roller-item {
-    font-size: 15px !important;
+  .hero-roller-capsule .pxxl-roller-item,
+  .hero-roller-capsule .pxxl-roller-spacer {
+    font-size: 13.5px !important;
   }
   .languages-pills-grid {
     grid-template-columns: 1fr !important;

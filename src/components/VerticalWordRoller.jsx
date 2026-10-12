@@ -90,6 +90,12 @@ export default function VerticalWordRoller({
 
   return (
     <span className={`pxxl-roller-stage ${className}`}>
+      {/* Invisible spacer giving the stage the dynamic natural width of the active phrase */}
+      <span className="pxxl-roller-spacer" aria-hidden="true">
+        <span className="pxxl-roller-icon">{renderRollerIcon(currentItem.iconType)}</span>
+        <span className="pxxl-roller-text">{currentItem.text}</span>
+      </span>
+
       {/* Exiting item dropping down */}
       {animState === 'exiting' && exitingItem && (
         <span className="pxxl-roller-item drop-down-exit" key={`exit-${prevIndex}`}>

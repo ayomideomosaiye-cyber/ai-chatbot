@@ -189,7 +189,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="hero-subtitle portal-subtitle">
-            Next-generation conversational AI built for technical depth and multilingual fluency. Real-time reasoning, multimodal vision, clean code architecture, and conversational clarity.
+            Intelligent AI engineered for deep reasoning, production code, and fluent native languages.
           </p>
 
           <div className="hero-cta-group">
