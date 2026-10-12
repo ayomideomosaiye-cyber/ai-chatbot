@@ -10,6 +10,7 @@ import LanguageSelector from '../components/LanguageSelector';
 import PersonaSelector from '../components/PersonaSelector';
 import { playPop, playChime, playTick, isSoundEnabled, toggleSound, stopSpeakingTTS } from '../utils/audio';
 import { toggleMotionCursor, isMotionCursorEnabled } from '../components/MotionCursor';
+import ShortcutsModal from '../components/ShortcutsModal';
 
 export default function ChatPage() {
   const { user, logout } = useAuth();
@@ -103,11 +104,35 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
+  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.ctrlKey && e.key === 'n') {
+      // Ctrl + N: New Chat
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'n' || e.key === 'N')) {
         e.preventDefault();
         newChat();
+      }
+      // Ctrl + M: Toggle Voice Input
+      else if ((e.ctrlKey || e.metaKey) && (e.key === 'm' || e.key === 'M')) {
+        e.preventDefault();
+        const voiceBtn = document.querySelector('.chat-voice-btn');
+        if (voiceBtn) voiceBtn.click();
+      }
+      // Ctrl + /: Toggle Keyboard Shortcuts Modal
+      else if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+        e.preventDefault();
+        setShowShortcutsModal(prev => !prev);
+      }
+      // Ctrl + K: Focus chat input
+      else if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        const inputArea = document.querySelector('.chat-input');
+        if (inputArea) inputArea.focus();
+      }
+      // Esc: Close shortcuts modal
+      else if (e.key === 'Escape') {
+        setShowShortcutsModal(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -532,6 +557,19 @@ export default function ChatPage() {
               </button>
             )}
 
+            {/* Keyboard Shortcuts Trigger Button */}
+            <button 
+              className="chat-header-btn hide-on-mobile" 
+              onClick={() => { playTick(); setShowShortcutsModal(true); }} 
+              title="Keyboard Shortcuts (Ctrl + /)"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M8 12h.001M12 12h.001M16 12h.001M7 16h10" />
+              </svg>
+              <span>Shortcuts</span>
+            </button>
+
             {/* Language Dropdown */}
             <LanguageSelector value={language} onChange={handleLanguageChange} />
           </div>
@@ -593,6 +631,9 @@ export default function ChatPage() {
           language={language}
         />
       </div>
+
+      {/* Keyboard Shortcuts Modal */}
+      <ShortcutsModal isOpen={showShortcutsModal} onClose={() => setShowShortcutsModal(false)} />
     </div>
   );
 }

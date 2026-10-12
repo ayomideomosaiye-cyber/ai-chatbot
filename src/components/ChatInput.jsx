@@ -28,7 +28,51 @@ export default function ChatInput({ value, onChange, onSend, onVoiceInput, isLis
     if (onVoiceInput) onVoiceInput();
   };
 
-  const processFile = (file) => {
+  const compressImage = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          const maxDim = 1920;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.84);
+          const base64 = dataUrl.split(',')[1];
+          const approxKb = Math.round(dataUrl.length * 0.75 / 1024);
+
+          resolve({
+            name: file.name.replace(/\.[^/.]+$/, "") + ".jpg",
+            size: `${approxKb} KB (Optimized)`,
+            mimeType: 'image/jpeg',
+            isVideo: false,
+            dataUrl,
+            base64
+          });
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const processFile = async (file) => {
     if (!file) return;
     const isImage = file.type.startsWith('image/');
     const isVideo = file.type.startsWith('video/');
@@ -38,27 +82,36 @@ export default function ChatInput({ value, onChange, onSend, onVoiceInput, isLis
       return;
     }
 
-    // Vercel serverless request body limit is 4.5MB. Base64 encoding adds ~33% overhead.
-    if (file.size > 3.5 * 1024 * 1024) {
-      alert(`The selected file is ${(file.size / (1024 * 1024)).toFixed(1)}MB.\n\nDue to Vercel cloud serverless payload limits (4.5MB ceiling for serverless HTTP requests), please select an image or video clip up to ~3.5MB.`);
-      return;
+    if (isVideo) {
+      if (file.size > 4.5 * 1024 * 1024) {
+        alert(`The selected video is ${(file.size / (1024 * 1024)).toFixed(1)}MB.\n\nDue to Vercel cloud serverless payload limits (4.5MB ceiling for serverless HTTP requests), please select a video clip under 4.5MB.`);
+        return;
+      }
+      playTick();
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target.result;
+        const base64 = dataUrl.split(',')[1];
+        setSelectedMedia({
+          name: file.name,
+          size: `${(file.size / 1024).toFixed(0)} KB`,
+          mimeType: file.type,
+          isVideo: true,
+          dataUrl,
+          base64
+        });
+      };
+      reader.readAsDataURL(file);
+    } else {
+      // Images: Auto-compress on the client to easily stay under 1MB even with 10MB+ camera shots!
+      playTick();
+      try {
+        const optimized = await compressImage(file);
+        setSelectedMedia(optimized);
+      } catch (err) {
+        console.warn('Image optimization fallback:', err);
+      }
     }
-
-    playTick();
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target.result;
-      const base64 = dataUrl.split(',')[1];
-      setSelectedMedia({
-        name: file.name,
-        size: (file.size / 1024).toFixed(0) + ' KB',
-        mimeType: file.type,
-        isVideo,
-        dataUrl,
-        base64
-      });
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleFileChange = (e) => {
@@ -109,6 +162,9 @@ export default function ChatInput({ value, onChange, onSend, onVoiceInput, isLis
       {showVoiceRecorder && (
         <VoiceRecorder 
           language={language}
+          onLiveUpdate={(liveWords) => {
+            onChange({ target: { value: liveWords } });
+          }}
           onTranscript={(text) => {
             const combined = value.trim() ? `${value.trim()} ${text}` : text;
             onChange({ target: { value: combined } });
