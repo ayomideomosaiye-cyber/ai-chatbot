@@ -103,12 +103,21 @@ export default function MessageBubble({ message, onRegenerate, isLast, onSuggest
           <div className="user-bubble-container">
             {imageSrc && (
               <div className="user-image-preview">
-                <img 
-                  src={imageSrc} 
-                  alt="Uploaded" 
-                  onClick={() => setShowImageModal(true)}
-                  title="Click to expand image"
-                />
+                {message.image?.mimeType?.startsWith('video/') ? (
+                  <video 
+                    src={imageSrc} 
+                    controls 
+                    className="user-video-player"
+                    playsInline
+                  />
+                ) : (
+                  <img 
+                    src={imageSrc} 
+                    alt="Uploaded attachment" 
+                    onClick={() => setShowImageModal(true)}
+                    title="Click to expand image"
+                  />
+                )}
               </div>
             )}
             <div className="user-bubble">

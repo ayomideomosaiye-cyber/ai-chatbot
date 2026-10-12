@@ -164,18 +164,94 @@ export default function ChatPage() {
     }
   };
 
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
+
+  const langSpeechMap = {
+    en: 'en-US',
+    yo: 'yo-NG',
+    ig: 'ig-NG',
+    ha: 'ha-NG',
+    pcm: 'en-NG',
+    zh: 'zh-CN',
+    es: 'es-ES',
+    fr: 'fr-FR',
+    ar: 'ar-SA',
+    hi: 'hi-IN',
+    pt: 'pt-BR',
+    ja: 'ja-JP',
+    ko: 'ko-KR',
+    de: 'de-DE',
+    sw: 'sw-KE',
+    zu: 'zu-ZA'
+  };
+
   const handleVoiceInput = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert('Your browser does not support Speech Recognition. Please try Chrome or Edge.');
+    if (isListening) {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch (e) {}
+      }
+      setIsListening(false);
+      setToastMessage('Voice input paused');
+      setTimeout(() => setToastMessage(null), 1800);
       return;
     }
-    const recognition = new SpeechRecognition();
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      setInput(prev => prev + (prev ? ' ' : '') + transcript);
-    };
-    recognition.start();
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Your browser does not support Speech Recognition. Please try Google Chrome, Microsoft Edge, or Safari.');
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognitionRef.current = recognition;
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = langSpeechMap[language] || 'en-US';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        playTick();
+        setToastMessage('🎙️ Listening... Speak into your microphone');
+      };
+
+      recognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        if (event.results[0].isFinal || transcript) {
+          setInput(prev => {
+            const trimmed = prev.trim();
+            return trimmed ? `${trimmed} ${transcript}` : transcript;
+          });
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.warn('Speech recognition status:', event.error);
+        setIsListening(false);
+        if (event.error === 'not-allowed') {
+          setToastMessage('⚠️ Microphone access was denied. Please allow microphone permission in your browser.');
+        } else if (event.error === 'no-speech') {
+          setToastMessage('No speech detected. Tap the mic button to try again.');
+        }
+        setTimeout(() => setToastMessage(null), 4000);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+        setTimeout(() => {
+          setToastMessage(prev => prev?.includes('Listening') ? null : prev);
+        }, 1200);
+      };
+
+      recognition.start();
+    } catch (err) {
+      console.error('Speech recognition start failed:', err);
+      setIsListening(false);
+    }
   };
 
   const handleSoundToggle = () => {
@@ -513,6 +589,7 @@ export default function ChatPage() {
           onChange={(e) => setInput(e.target.value)}
           onSend={(payload) => sendMessage(payload)}
           onVoiceInput={handleVoiceInput}
+          isListening={isListening}
         />
       </div>
     </div>

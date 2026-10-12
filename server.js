@@ -387,12 +387,16 @@ app.post('/api/chat', authMiddleware, rateLimiter(35, 60000), async (req, res) =
     });
   }
   
-  const promptText = message.trim() || (image ? "Please analyze and explain what you see in this image in detail." : "Hello");
+  const isVideo = image && image.mimeType && image.mimeType.startsWith('video/');
+  const defaultPrompt = isVideo 
+    ? "Please analyze this video in detail, describing the sequence of events, actions, and key context." 
+    : "Please analyze and explain what you see in this image in detail.";
+  const promptText = message.trim() || (image ? defaultPrompt : "Hello");
   userParts.push({ text: promptText });
   
   const newMsg = {
     role: 'user',
-    text: message.trim() || (image ? "Shared an image for analysis" : ""),
+    text: message.trim() || (image ? (isVideo ? "Shared a video for analysis" : "Shared an image for analysis") : ""),
     image: image ? { mimeType: image.mimeType, data: image.data } : null,
     timestamp: new Date().toISOString()
   };
@@ -401,7 +405,7 @@ app.post('/api/chat', authMiddleware, rateLimiter(35, 60000), async (req, res) =
   contents.push({ role: 'user', parts: userParts });
   
   if (conv.messages.filter(m => m.role === 'user').length === 1 && conv.title === 'New Chat') {
-    const rawTitle = message.trim() || (image ? 'Image Analysis' : 'New Chat');
+    const rawTitle = message.trim() || (image ? (isVideo ? 'Video Analysis' : 'Image Analysis') : 'New Chat');
     conv.title = rawTitle.substring(0, 50) + (rawTitle.length > 50 ? '...' : '');
   }
   

@@ -1,9 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { playPop, playTick } from '../utils/audio';
 
-export default function ChatInput({ value, onChange, onSend, onVoiceInput }) {
-  const [isListening, setIsListening] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null); // { file, previewUrl, base64, mimeType }
+export default function ChatInput({ value, onChange, onSend, onVoiceInput, isListening = false }) {
+  const [selectedMedia, setSelectedMedia] = useState(null); // { file, name, size, isVideo, previewUrl, base64, mimeType }
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -22,28 +21,35 @@ export default function ChatInput({ value, onChange, onSend, onVoiceInput }) {
   };
 
   const handleVoiceToggle = () => {
-    setIsListening(!isListening);
     onVoiceInput();
   };
 
   const processFile = (file) => {
-    if (!file || !file.type.startsWith('image/')) {
-      alert('Please upload an image file (PNG, JPEG, WebP, GIF)');
+    if (!file) return;
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+
+    if (!isImage && !isVideo) {
+      alert('Please upload an image (PNG, JPEG, WebP, GIF) or a video clip (MP4, WebM, MOV).');
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      alert('Image size exceeds 10MB limit. Please select a smaller image.');
+
+    // Vercel serverless request body limit is 4.5MB. Base64 encoding adds ~33% overhead.
+    if (file.size > 3.5 * 1024 * 1024) {
+      alert(`The selected file is ${(file.size / (1024 * 1024)).toFixed(1)}MB.\n\nDue to Vercel cloud serverless payload limits (4.5MB ceiling for serverless HTTP requests), please select an image or video clip up to ~3.5MB.`);
       return;
     }
+
     playTick();
     const reader = new FileReader();
     reader.onload = (e) => {
       const dataUrl = e.target.result;
       const base64 = dataUrl.split(',')[1];
-      setSelectedImage({
+      setSelectedMedia({
         name: file.name,
         size: (file.size / 1024).toFixed(0) + ' KB',
         mimeType: file.type,
+        isVideo,
         dataUrl,
         base64
       });
@@ -61,7 +67,7 @@ export default function ChatInput({ value, onChange, onSend, onVoiceInput }) {
     const items = e.clipboardData?.items;
     if (items) {
       for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf('image') !== -1) {
+        if (items[i].type.indexOf('image') !== -1 || items[i].type.indexOf('video') !== -1) {
           const file = items[i].getAsFile();
           if (file) {
             processFile(file);
@@ -72,34 +78,46 @@ export default function ChatInput({ value, onChange, onSend, onVoiceInput }) {
     }
   };
 
-  const clearImage = () => {
+  const clearMedia = () => {
     playTick();
-    setSelectedImage(null);
+    setSelectedMedia(null);
   };
 
   const handleSend = () => {
-    if (!value.trim() && !selectedImage) return;
+    if (!value.trim() && !selectedMedia) return;
     const payload = {
       text: value.trim(),
-      image: selectedImage ? { data: selectedImage.base64, mimeType: selectedImage.mimeType, previewUrl: selectedImage.dataUrl } : null
+      image: selectedMedia ? { 
+        data: selectedMedia.base64, 
+        mimeType: selectedMedia.mimeType, 
+        previewUrl: selectedMedia.dataUrl,
+        isVideo: selectedMedia.isVideo,
+        name: selectedMedia.name
+      } : null
     };
-    setSelectedImage(null);
+    setSelectedMedia(null);
     onSend(payload);
   };
 
   return (
     <div className="chat-input-container">
-      {/* Image Preview Floating Chip */}
-      {selectedImage && (
+      {/* Media Preview Floating Chip */}
+      {selectedMedia && (
         <div className="input-image-preview glass">
-          <img src={selectedImage.dataUrl} alt="Attached Preview" className="preview-thumb" />
+          {selectedMedia.isVideo ? (
+            <video src={selectedMedia.dataUrl} className="preview-thumb preview-video-thumb" muted autoPlay loop playsInline />
+          ) : (
+            <img src={selectedMedia.dataUrl} alt="Attached Preview" className="preview-thumb" />
+          )}
           <div className="preview-meta">
-            <span className="preview-name">{selectedImage.name}</span>
-            <span className="preview-size">{selectedImage.size} · Multimodal Vision</span>
+            <span className="preview-name">{selectedMedia.name}</span>
+            <span className="preview-size">
+              {selectedMedia.size} · {selectedMedia.isVideo ? 'Multimodal Video' : 'Multimodal Vision'}
+            </span>
           </div>
           <button 
             className="preview-remove-btn" 
-            onClick={clearImage}
+            onClick={clearMedia}
             title="Remove attachment"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -115,7 +133,7 @@ export default function ChatInput({ value, onChange, onSend, onVoiceInput }) {
         <input 
           type="file" 
           ref={fileInputRef} 
-          accept="image/png, image/jpeg, image/webp, image/gif" 
+          accept="image/png, image/jpeg, image/webp, image/gif, video/mp4, video/webm, video/quicktime" 
           style={{ display: 'none' }}
           onChange={handleFileChange}
         />
@@ -123,9 +141,9 @@ export default function ChatInput({ value, onChange, onSend, onVoiceInput }) {
         {/* Upload Attachment Button */}
         <button 
           type="button"
-          className={`chat-action-icon-btn ${selectedImage ? 'active' : ''}`}
+          className={`chat-action-icon-btn ${selectedMedia ? 'active' : ''}`}
           onClick={() => fileInputRef.current?.click()}
-          title="Upload or drop image (Multimodal Vision)"
+          title="Upload image or video clip (Multimodal Analysis)"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
@@ -135,9 +153,9 @@ export default function ChatInput({ value, onChange, onSend, onVoiceInput }) {
         {/* Voice Input Button */}
         <button 
           type="button"
-          className={`chat-voice-btn ${isListening ? 'active' : ''}`} 
+          className={`chat-voice-btn ${isListening ? 'active listening' : ''}`} 
           onClick={handleVoiceToggle}
-          title="Use Voice Input"
+          title={isListening ? "Listening... Click to stop" : "Use Voice Input"}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
