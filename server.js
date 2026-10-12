@@ -476,6 +476,67 @@ app.post('/api/chat', authMiddleware, rateLimiter(35, 60000), async (req, res) =
 });
 
 // ==============================================================
+// AUDIO TRANSCRIPTION ROUTE (UNIVERSAL MULTIMODAL SPEECH-TO-TEXT)
+// ==============================================================
+app.post('/api/transcribe', authMiddleware, rateLimiter(45, 60000), async (req, res) => {
+  try {
+    const { audioData, mimeType = 'audio/webm', language = 'en' } = req.body;
+    if (!audioData) {
+      return res.status(400).json({ error: 'No audio data provided' });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
+
+    const cleanMime = (mimeType || 'audio/webm').split(';')[0];
+    const settings = await getSettings();
+    const model = settings.model || 'gemini-flash-lite-latest';
+    const langName = languages[language] || 'English';
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                inlineData: {
+                  mimeType: cleanMime,
+                  data: audioData
+                }
+              },
+              {
+                text: `You are an expert audio speech transcriber. Listen to this spoken audio carefully and transcribe every word spoken verbatim. The user is communicating in or around ${langName}. If the speech is in an African dialect like Yoruba, Igbo, Hausa, or Pidgin, transcribe it accurately with correct spelling and diacritics. Return ONLY the clean, raw transcribed text. Do NOT include quotes, timestamps, markdown, or any conversational preamble like "The speaker said:". If there is only silence, static, or background noise, return an empty string.`
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: 1024
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      console.error('Transcription upstream error:', err);
+      return res.status(response.status).json({ error: 'Upstream transcription failed', details: err });
+    }
+
+    const data = await response.json();
+    const transcript = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+    res.json({ transcript });
+  } catch (err) {
+    console.error('Transcription endpoint error:', err);
+    res.status(500).json({ error: 'Transcription failed' });
+  }
+});
+
+// ==============================================================
 // CONVERSATIONS ROUTES
 // ==============================================================
 app.get('/api/conversations', authMiddleware, async (req, res) => {

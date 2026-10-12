@@ -1,8 +1,10 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { playPop, playTick } from '../utils/audio';
+import VoiceRecorder from './VoiceRecorder';
 
-export default function ChatInput({ value, onChange, onSend, onVoiceInput, isListening = false }) {
+export default function ChatInput({ value, onChange, onSend, onVoiceInput, isListening = false, language = 'en' }) {
   const [selectedMedia, setSelectedMedia] = useState(null); // { file, name, size, isVideo, previewUrl, base64, mimeType }
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -21,7 +23,9 @@ export default function ChatInput({ value, onChange, onSend, onVoiceInput, isLis
   };
 
   const handleVoiceToggle = () => {
-    onVoiceInput();
+    playTick();
+    setShowVoiceRecorder(prev => !prev);
+    if (onVoiceInput) onVoiceInput();
   };
 
   const processFile = (file) => {
@@ -101,6 +105,19 @@ export default function ChatInput({ value, onChange, onSend, onVoiceInput, isLis
 
   return (
     <div className="chat-input-container">
+      {/* Live Voice Recorder with Audio Visualizer Waves */}
+      {showVoiceRecorder && (
+        <VoiceRecorder 
+          language={language}
+          onTranscript={(text) => {
+            const combined = value.trim() ? `${value.trim()} ${text}` : text;
+            onChange({ target: { value: combined } });
+            setShowVoiceRecorder(false);
+          }}
+          onClose={() => setShowVoiceRecorder(false)}
+        />
+      )}
+
       {/* Media Preview Floating Chip */}
       {selectedMedia && (
         <div className="input-image-preview glass">
@@ -153,9 +170,9 @@ export default function ChatInput({ value, onChange, onSend, onVoiceInput, isLis
         {/* Voice Input Button */}
         <button 
           type="button"
-          className={`chat-voice-btn ${isListening ? 'active listening' : ''}`} 
+          className={`chat-voice-btn ${showVoiceRecorder || isListening ? 'active listening' : ''}`} 
           onClick={handleVoiceToggle}
-          title={isListening ? "Listening... Click to stop" : "Use Voice Input"}
+          title={showVoiceRecorder ? "Close Voice Recorder" : "Record voice (with live audio waveform)"}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>

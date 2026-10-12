@@ -590,6 +590,7 @@ export default function ChatPage() {
           onSend={(payload) => sendMessage(payload)}
           onVoiceInput={handleVoiceInput}
           isListening={isListening}
+          language={language}
         />
       </div>
     </div>

@@ -3559,6 +3559,172 @@ a:hover { opacity: 0.85; }
   transform: scale(1.1);
 }
 
+/* ========================================================
+   LIVE VOICE RECORDER & REAL-TIME AUDIO WAVEFORM
+   ======================================================== */
+.voice-recorder-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: var(--radius-lg);
+  background: rgba(14, 18, 32, 0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(0, 245, 212, 0.45);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 245, 212, 0.15);
+  margin-bottom: 10px;
+  animation: slideUpFade 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.voice-active-row,
+.voice-processing-row,
+.voice-error-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+}
+
+.voice-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 51, 102, 0.15);
+  border: 1px solid rgba(255, 51, 102, 0.4);
+  padding: 4px 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.voice-red-ping {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff3366;
+  box-shadow: 0 0 10px #ff3366;
+  animation: ping 1.2s infinite;
+}
+
+.voice-timer-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ff3366;
+  font-family: monospace;
+}
+
+/* 7 Dancing Live Audio Wave Bars */
+.voice-waveform-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 42px;
+  padding: 0 8px;
+  flex: 1;
+}
+
+.voice-wave-bar {
+  width: 5px;
+  background: linear-gradient(180deg, #00f5d4 0%, #7b2cbf 100%);
+  border-radius: 4px;
+  transition: height 0.08s ease-out;
+  box-shadow: 0 0 8px rgba(0, 245, 212, 0.4);
+}
+
+.voice-prompt-hint {
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.voice-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.voice-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  cursor: pointer;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all var(--transition);
+}
+
+.voice-btn-transcribe {
+  background: linear-gradient(135deg, #00f5d4 0%, #00bbf9 100%);
+  color: #000;
+  padding: 6px 14px;
+  box-shadow: 0 4px 14px rgba(0, 245, 212, 0.35);
+}
+
+.voice-btn-transcribe:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 245, 212, 0.5);
+}
+
+.voice-btn-cancel {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.voice-btn-cancel:hover {
+  background: rgba(255, 51, 102, 0.25);
+  color: #ff3366;
+}
+
+.voice-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(0, 245, 212, 0.2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+.voice-proc-text {
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.voice-error-text {
+  font-size: 12.5px;
+  color: #ff5577;
+  flex: 1;
+}
+
+.voice-btn-close {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
 .chat-action-icon-btn {
   background: transparent;
   border: none;
