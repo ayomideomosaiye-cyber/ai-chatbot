@@ -169,7 +169,7 @@ export default function ChatInput({ value, onChange, onSend, onVoiceInput, isLis
         <textarea
           ref={textareaRef}
           className="chat-input"
-          placeholder={selectedImage ? "Ask Westy about this image..." : "Message Westy (or paste an image)..."}
+          placeholder={selectedMedia ? `Ask Westy about this ${selectedMedia.isVideo ? 'video' : 'image'}...` : "Message Westy (or attach media)..."}
           value={value}
           onChange={onChange}
           onKeyDown={handleKeyDown}
@@ -182,8 +182,8 @@ export default function ChatInput({ value, onChange, onSend, onVoiceInput, isLis
           type="button"
           className="chat-send-btn" 
           onClick={handleSend}
-          disabled={!value.trim() && !selectedImage}
-          style={{ background: (value.trim() || selectedImage) ? 'var(--accent-gradient)' : 'var(--bg-tertiary)' }}
+          disabled={!value.trim() && !selectedMedia}
+          style={{ background: (value.trim() || selectedMedia) ? 'var(--accent-gradient)' : 'var(--bg-tertiary)' }}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="22" y1="2" x2="11" y2="13"/>
