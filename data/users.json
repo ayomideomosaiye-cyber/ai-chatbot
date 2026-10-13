@@ -1,15 +1,15 @@
 [
   {
-    "id": "79d0880d-d181-4cfc-b11b-a811ae085335",
-    "username": "Admin",
-    "email": "admin@westy.ai",
-    "password": "$2a$10$.Rb51y1oS6f5rPIyX1jd1.pOaE059vTYUUo1boRTfQIdkIroRB4S.",
-    "isAdmin": true,
-    "isBanned": false,
     "createdAt": "2026-09-30T09:50:53.350Z",
-    "lastActive": "2026-09-30T13:14:14.971Z",
-    "messageCount": 2,
-    "preferredLanguage": "en"
+    "password": "$2a$10$.Rb51y1oS6f5rPIyX1jd1.pOaE059vTYUUo1boRTfQIdkIroRB4S.",
+    "preferredLanguage": "en",
+    "messageCount": 3,
+    "isBanned": false,
+    "id": "79d0880d-d181-4cfc-b11b-a811ae085335",
+    "isAdmin": true,
+    "email": "admin@westy.ai",
+    "username": "Admin",
+    "lastActive": "2026-10-13T18:51:04.885Z"
   },
   {
     "id": "a9ddf1e8-e574-4ebe-94ae-537bc4a8fb31",

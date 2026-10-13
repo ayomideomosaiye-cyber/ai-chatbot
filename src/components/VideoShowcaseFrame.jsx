@@ -63,6 +63,7 @@ export default function VideoShowcaseFrame() {
           onEnded={handleVideoEnded}
           onError={() => setHasError(true)}
         >
+          <source src="/westy-demo.webm" type="video/webm" />
           <source src="/westy-demo.mp4" type="video/mp4" />
           Your browser does not support high-definition video playback.
         </video>
