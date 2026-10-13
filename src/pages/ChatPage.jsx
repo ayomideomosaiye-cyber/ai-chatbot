@@ -11,6 +11,7 @@ import PersonaSelector from '../components/PersonaSelector';
 import { playPop, playChime, playTick, isSoundEnabled, toggleSound, stopSpeakingTTS } from '../utils/audio';
 import { toggleMotionCursor, isMotionCursorEnabled } from '../components/MotionCursor';
 import ShortcutsModal from '../components/ShortcutsModal';
+import WestyBrandMark from '../components/WestyBrandMark';
 
 export default function ChatPage() {
   const { user, logout } = useAuth();
@@ -453,16 +454,8 @@ export default function ChatPage() {
                 <path d="M3 12h18M3 6h18M3 18h18" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            <h2 className="chat-title">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="pulse-star">
-                <path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z" fill="url(#sparkle-gradient)"/>
-                <defs>
-                  <linearGradient id="sparkle-gradient" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="var(--accent)"/>
-                    <stop offset="1" stopColor="var(--accent-purple)"/>
-                  </linearGradient>
-                </defs>
-              </svg>
+            <h2 className="chat-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <WestyBrandMark size={24} />
               <span className="gradient-text">Westy</span>
             </h2>
           </div>

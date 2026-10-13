@@ -1,5 +1,6 @@
 import React from 'react';
 import VerticalWordRoller from './VerticalWordRoller';
+import WestyBrandMark from './WestyBrandMark';
 
 export default function WelcomeScreen({ onPromptClick }) {
   const prompts = [
@@ -28,15 +29,7 @@ export default function WelcomeScreen({ onPromptClick }) {
   return (
     <div className="welcome">
       <div className="welcome-logo">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z" fill="url(#welcome-sparkle)"/>
-          <defs>
-            <linearGradient id="welcome-sparkle" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-              <stop stopColor="var(--accent)"/>
-              <stop offset="1" stopColor="var(--accent-purple)"/>
-            </linearGradient>
-          </defs>
-        </svg>
+        <WestyBrandMark size={56} />
       </div>
       <h1 className="welcome-title">Hello! I'm <span className="gradient-text">Westy</span></h1>
       

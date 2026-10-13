@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import MarkdownRenderer from '../components/MarkdownRenderer';
 import { playPop, playTick } from '../utils/audio';
+import WestyBrandMark from '../components/WestyBrandMark';
 
 export default function SharePage() {
   const { id } = useParams();
@@ -55,16 +56,8 @@ export default function SharePage() {
       {/* Top Navbar */}
       <header className="share-nav-bar glass">
         <div className="share-nav-left">
-          <Link to="/" className="share-logo-link">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" className="pulse-star">
-              <path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z" fill="url(#share-sparkle)"/>
-              <defs>
-                <linearGradient id="share-sparkle" x1="2" y1="2" x2="22" y2="22">
-                  <stop stopColor="#00f5d4"/>
-                  <stop offset="1" stopColor="#7b2cbf"/>
-                </linearGradient>
-              </defs>
-            </svg>
+          <Link to="/" className="share-logo-link" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <WestyBrandMark size={24} />
             <span className="share-logo-title gradient-text">Westy AI</span>
             <span className="share-badge-readonly">Shared View</span>
           </Link>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet, NavLink, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import WestyBrandMark from '../../components/WestyBrandMark';
 
 export default function AdminLayout() {
   const { user, isAdmin } = useAuth();
@@ -28,10 +29,8 @@ export default function AdminLayout() {
       {/* Mobile Top Navigation for Admin */}
       <header className="admin-mobile-header show-on-mobile glass">
         <div className="admin-mobile-header-top">
-          <Link to="/chat" className="admin-mobile-brand">
-            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none">
-              <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" />
-            </svg>
+          <Link to="/chat" className="admin-mobile-brand" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <WestyBrandMark size={20} />
             <span className="gradient-text">Westy Admin</span>
           </Link>
           <Link to="/chat" className="admin-mobile-back-btn">
@@ -57,10 +56,8 @@ export default function AdminLayout() {
       {/* Desktop Sidebar */}
       <nav className="admin-sidebar hide-on-mobile">
         <div className="admin-logo">
-          <Link to="/chat">
-            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none">
-              <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" />
-            </svg>
+          <Link to="/chat" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <WestyBrandMark size={24} />
             <span className="gradient-text">Westy</span>
             <span>Admin</span>
           </Link>

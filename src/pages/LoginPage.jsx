@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import GoogleSignInButton from '../components/GoogleSignInButton';
+import WestyBrandMark from '../components/WestyBrandMark';
 
 export default function LoginPage() {
   const { user, login } = useAuth();
@@ -43,16 +44,8 @@ export default function LoginPage() {
             ← Back to Home
           </Link>
         </div>
-        <div className="auth-logo">
-          <svg viewBox='0 0 24 24' width='32' height='32'>
-            <path d='M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z' fill='url(#authGradient)'/>
-            <defs>
-              <linearGradient id='authGradient' x1='0%' y1='0%' x2='100%' y2='100%'>
-                <stop offset='0%' stopColor='#00f5d4'/>
-                <stop offset='100%' stopColor='#7b2cbf'/>
-              </linearGradient>
-            </defs>
-          </svg>
+        <div className="auth-logo" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <WestyBrandMark size={32} />
           <span className="gradient-text">Westy</span>
         </div>
         <h1 className="auth-title">Welcome back</h1>

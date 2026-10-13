@@ -5,6 +5,7 @@ import { languages } from '../utils/languages';
 import FlagBadge from '../components/FlagBadge';
 import VerticalWordRoller from '../components/VerticalWordRoller';
 import VideoShowcaseFrame from '../components/VideoShowcaseFrame';
+import WestyBrandMark from '../components/WestyBrandMark';
 import { playPop, playTick } from '../utils/audio';
 
 export default function LandingPage() {
@@ -34,15 +35,7 @@ export default function LandingPage() {
         {/* Floating Top Nav */}
         <header className="landing-nav glass-strong portal-nav">
           <div className="landing-logo">
-            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" className="pulse-star">
-              <path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z" fill="url(#hero-star-grad)" />
-              <defs>
-                <linearGradient id="hero-star-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="var(--accent)" />
-                  <stop offset="1" stopColor="var(--accent-purple)" />
-                </linearGradient>
-              </defs>
-            </svg>
+            <WestyBrandMark size={28} />
             <span className="landing-brand gradient-text">Westy</span>
           </div>
 
