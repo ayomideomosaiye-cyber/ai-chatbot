@@ -6,15 +6,19 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-async function recordDemo() {
-  console.log('🎬 Starting automated browser recording for Westy AI...');
+async function recordStudioDemo() {
+  console.log('🎬 Starting Westy Studio 1080p Recording with Motion Simulation & Full Response...');
 
   const videoDir = path.join(__dirname, '../public/recorded-video');
   if (!fs.existsSync(videoDir)) {
     fs.mkdirSync(videoDir, { recursive: true });
   }
 
-  // Launch installed full Chromium with video recording enabled at full 1080p
+  // Clear previous recordings
+  fs.readdirSync(videoDir).forEach(f => {
+    try { fs.unlinkSync(path.join(videoDir, f)); } catch(e){}
+  });
+
   const executablePath = path.join(
     process.env.LOCALAPPDATA,
     'ms-playwright/chromium-1248/chrome-win64/chrome.exe'
@@ -35,28 +39,28 @@ async function recordDemo() {
 
   const page = await context.newPage();
 
+  page.on('console', msg => console.log('  [Browser]:', msg.text()));
+
   try {
-    console.log('📍 Navigating to Westy Landing Page...');
+    // 1. SCENE: Hero Entrance
+    console.log('📍 Scene 1: Capturing Hero Landing Page...');
     await page.goto('http://localhost:3001/', { waitUntil: 'networkidle' });
     await page.waitForTimeout(2000);
 
-    // Smooth scroll down to capabilities
-    console.log('📜 Scrolling through features...');
-    await page.evaluate(() => window.scrollBy({ top: 600, behavior: 'smooth' }));
-    await page.waitForTimeout(2500);
+    // 2. SCENE: Motion Glide over Core Features
+    console.log('📜 Scene 2: Motion Glide over Core Features...');
+    await page.evaluate(() => {
+      window.scrollBy({ top: 580, behavior: 'smooth' });
+    });
+    await page.waitForTimeout(2200);
 
-    // Scroll back to top
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
-    await page.waitForTimeout(1500);
-
-    // Click Begin Conversation
-    console.log('🚀 Entering Chat...');
+    // 3. SCENE: Launch into Chat Workspace
+    console.log('🚀 Scene 3: Entering Chat Workspace...');
     await page.goto('http://localhost:3001/login', { waitUntil: 'networkidle' });
     await page.waitForTimeout(1000);
 
-    // If on login page, fill credentials
     if (page.url().includes('/login')) {
-      console.log('🔑 Logging in with default test account...');
+      console.log('🔑 Authenticating session...');
       await page.fill('input[type="email"]', 'admin@westy.ai');
       await page.fill('input[type="password"]', 'admin123');
       await page.click('button[type="submit"]');
@@ -64,53 +68,52 @@ async function recordDemo() {
       await page.waitForTimeout(2000);
     }
 
-    // Now in Chat Area
-    console.log('💬 Executing conversational query...');
-    const chatInput = page.locator('textarea.chat-input');
-    await chatInput.waitFor({ state: 'visible', timeout: 10000 });
+    // 4. SCENE: Clicking Suggested Prompt Card on Welcome Screen!
+    console.log('💡 Scene 4: Clicking Architecture Prompt Card...');
+    const firstPrompt = page.locator('.welcome-prompt').first();
+    await firstPrompt.waitFor({ state: 'visible', timeout: 8000 });
+    await firstPrompt.click();
 
-    const samplePrompt = 'Explain event-driven architecture vs request-response and write a clean TypeScript example.';
-    // Simulate natural human typing
-    for (const char of samplePrompt) {
-      await chatInput.type(char, { delay: 35 });
-    }
-    await page.waitForTimeout(800);
+    // 5. SCENE: Wait for Streaming AI Response & Render
+    console.log('⚡ Scene 5: Streaming real-time response & formatting markdown...');
+    // Give 18 seconds for the full response with code blocks to stream in
+    await page.waitForTimeout(18000);
 
-    // Send the prompt
-    console.log('⚡ Sending prompt and recording real-time stream...');
-    await page.keyboard.press('Enter');
-
-    // Wait for the response to stream in
-    await page.waitForTimeout(12000);
-
-    // Scroll down through the response
+    // 6. SCENE: Smooth Cinematic Scroll down through code block
+    console.log('📜 Scene 6: Cinematic scroll down through code block...');
     await page.evaluate(() => {
       const messagesContainer = document.querySelector('.chat-messages');
       if (messagesContainer) {
-        messagesContainer.scrollBy({ top: 400, behavior: 'smooth' });
+        messagesContainer.scrollBy({ top: 450, behavior: 'smooth' });
       }
     });
     await page.waitForTimeout(3000);
 
-    console.log('✨ Recording complete!');
+    // 7. SCENE: Voice Waves Motion (Live Audio Waveform)
+    console.log('🎙️ Scene 7: Demonstrating Antigravity Voice Waves...');
+    const voiceBtn = page.locator('button.chat-voice-btn');
+    if (await voiceBtn.isVisible()) {
+      await voiceBtn.click();
+      await page.waitForTimeout(4000); // 4 full seconds of fluid Sinusoidal waves
+    }
+
+    console.log('✨ All scenes recorded with motion and live response!');
   } catch (err) {
     console.error('Recording error:', err);
   } finally {
-    // Closing context finalizes and saves the video
     await page.close();
     await context.close();
     await browser.close();
 
-    // Find the saved video and copy it to public/westy-demo.webm
     const files = fs.readdirSync(videoDir);
     const videoFile = files.find(f => f.endsWith('.webm'));
     if (videoFile) {
       const srcPath = path.join(videoDir, videoFile);
       const destPath = path.join(__dirname, '../public/westy-demo.webm');
       fs.copyFileSync(srcPath, destPath);
-      console.log(`🎉 Demo video saved to: ${destPath}`);
+      console.log(`🎉 Studio Demo video saved to: ${destPath}`);
     }
   }
 }
 
-recordDemo();
+recordStudioDemo();
