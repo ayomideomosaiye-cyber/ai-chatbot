@@ -40,7 +40,6 @@ export default function LandingPage() {
           </div>
 
           <nav className="landing-nav-links">
-            <a href="#showcase">Demo Showcase</a>
             <a href="#features">Features</a>
             <a href="#languages">Languages</a>
           </nav>
@@ -101,28 +100,12 @@ export default function LandingPage() {
                 <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            <a href="#showcase" className="btn btn-secondary hero-btn-sub" onClick={() => playTick()}>
-              Watch Demo Video ↓
+            <a href="#features" className="btn btn-secondary hero-btn-sub" onClick={() => playTick()}>
+              Explore Capabilities ↓
             </a>
           </div>
         </div>
       </div>
-
-      {/* 
-        ============================================================
-        STUDIO VIDEO SHOWCASE SECTION
-        ============================================================ 
-      */}
-      <section id="showcase" className="landing-section showcase-section">
-        <div className="section-header">
-          <span className="section-tag">Studio Showcase</span>
-          <h2 className="section-title">See Westy in action.</h2>
-          <p className="section-subtitle">A high-definition walkthrough of real-time streaming, multilingual reasoning, and intelligent voice interaction.</p>
-        </div>
-
-        {/* Dedicated 16:9 Video Frame Chassis */}
-        <VideoShowcaseFrame />
-      </section>
 
       {/* 
         ============================================================
